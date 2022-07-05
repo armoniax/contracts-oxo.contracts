@@ -84,10 +84,10 @@ void otcbook::setmerchant(const name& owner, const name& merchant, const string 
     if (!_dbc.get(merchant_raw)) { // first register, init
         merchant_raw.state = (isAdmin) ? (uint8_t)merchant_state_t::ENABLED : (uint8_t)merchant_state_t::REGISTERED;
     }
-    merchant_raw.merchant_name = merchant_name;
-    merchant_raw.merchant_detail = merchant_detail;
-    merchant_raw.email = email;
-    merchant_raw.memo = memo;
+    if ( merchant_name.length() > 0 )   merchant_raw.merchant_name = merchant_name;
+    if ( merchant_detail.length() > 0 ) merchant_raw.merchant_detail = merchant_detail;
+    if ( email.length() > 0 )           merchant_raw.email = email;
+    if ( memo.length() > 0 )            merchant_raw.memo = memo;
     merchant_raw.updated_at = time_point_sec(current_time_point());
 
     _dbc.set( merchant_raw, get_self() );
