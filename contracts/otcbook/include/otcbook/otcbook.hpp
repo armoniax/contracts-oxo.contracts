@@ -161,8 +161,7 @@ public:
      */
     [[eosio::action]]
     void opendeal(const name& taker, const name& order_side, const uint64_t& order_id,
-        const asset& deal_quantity, const uint64_t& order_sn,
-        const string& session_msg);
+        const asset& deal_quantity, const uint64_t& order_sn, const name& pay_type);
 
     /**
      * close deal
@@ -171,11 +170,10 @@ public:
      * @param account account name
      * @param account_type account type, admin(1) | merchant(2) | user(3)
      * @param deal_id deal_id, created by opendeal()
-     * @param session_msg session msg(message)
      * @note require account auth
      */
     [[eosio::action]]
-    void closedeal(const name& account, const uint8_t& account_type, const uint64_t& deal_id, const string& session_msg);
+    void closedeal(const name& account, const uint8_t& account_type, const uint64_t& deal_id, const string& close_msg);
 
     /**
      * close deal
@@ -184,12 +182,11 @@ public:
      * @param account account name
      * @param account_type account type, admin(1) | merchant(2) | user(3)
      * @param deal_id deal_id, created by opendeal()
-     * @param session_msg session msg(message)
      * @param is_taker_black is taker black,  if true, and status is MAKER_ACCEPTED, and account is maker: add taker to blacklist
      * @note require account auth
      */
     [[eosio::action]]
-    void canceldeal(const name& account, const uint8_t& account_type, const uint64_t& deal_id, const string& session_msg, bool is_taker_black);
+    void canceldeal(const name& account, const uint8_t& account_type, const uint64_t& deal_id, bool is_taker_black);
 
 
     /**
@@ -203,7 +200,7 @@ public:
      */
     [[eosio::action]]
     void processdeal(const name& account, const uint8_t& account_type, const uint64_t& deal_id,
-        uint8_t action, const string& session_msg);
+        uint8_t action);
 
 
     /**
@@ -217,7 +214,7 @@ public:
      */
      [[eosio::action]]
     void startarbit(const name& account, const uint8_t& account_type, const uint64_t& deal_id,
-        const name& arbiter, const string& session_msg);
+        const name& arbiter);
 
 
     /**
@@ -230,7 +227,7 @@ public:
      * @note require account auth
      */
      [[eosio::action]]
-    void closearbit(const name& account, const uint64_t& deal_id, const uint8_t& arbit_result, const string& session_msg);
+    void closearbit(const name& account, const uint64_t& deal_id, const uint8_t& arbit_result);
 
     /**
      * arbiter close arbit request
@@ -238,11 +235,10 @@ public:
      * @param account_type account type, merchant(2) | user(3)
      * @param deal_id deal_id, created by opendeal()
      * @param arbit_result 0:session
-     * @param session_msg session msg(message)
      * @note require account auth
      */
     [[eosio::action]]
-    void cancelarbit( const uint8_t& account_type, const name& account, const uint64_t& deal_id, const string& session_msg );
+    void cancelarbit( const uint8_t& account_type, const name& account, const uint64_t& deal_id);
     /**
      * action trigger by transfer()
      * transfer token to this contract will trigger this action
@@ -269,11 +265,10 @@ public:
      * reversedeal
      * @param account account, must be admin
      * @param deal_id deal_id, created by opendeal()
-     * @param session_msg session msg(message)
      * @note require account auth
      */
     [[eosio::action]]
-    void resetdeal(const name& account, const uint64_t& deal_id, const string& session_msg);
+    void resetdeal(const name& account, const uint64_t& deal_id);
 
     /**
      * set blacklist for opendeal()
@@ -311,7 +306,7 @@ private:
     void _add_balance(merchant_t& merchant, const asset& quantity, const string & memo);
     void _sub_balance(merchant_t& merchant, const asset& quantity, const string & memo);
     void _frozen(merchant_t& merchant, const asset& quantity);
-    void _unfrozen(merchant_t& merchant, const asset& quantityl);
+    void _unfrozen(merchant_t& merchant, const asset& quantity);
 };
 
 }

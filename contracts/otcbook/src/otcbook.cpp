@@ -265,9 +265,7 @@ void otcbook::closeorder(const name& owner, const name& order_side, const uint64
 }
 
 void otcbook::opendeal(const name& taker, const name& order_side, const uint64_t& order_id,
-    const asset& deal_quantity, const uint64_t& order_sn,
-    const string& session_msg
-) {
+    const asset& deal_quantity, const uint64_t& order_sn, const name& pay_type) {
     auto conf = _conf();
     check(conf.status == (uint8_t)status_type::RUNNING, "service is in maintenance");
     require_auth( taker );
@@ -314,15 +312,13 @@ void otcbook::opendeal(const name& taker, const name& order_side, const uint64_t
         row.deal_quantity		= deal_quantity;
         row.order_maker			= order_maker;
         row.order_taker			= taker;
+        row.pay_type            = pay_type;
         row.status				=(uint8_t)deal_status_t::CREATED;
         row.arbit_status        =(uint8_t)arbit_status_t::UNARBITTED;
         row.created_at			= now;
         row.updated_at          = now;
         row.order_sn 			= order_sn;
         row.deal_fee            = deal_fee;
-        // row.expired_at 			= time_point_sec(created_at.sec_since_epoch() + _gstate.withhold_expire_sec);
-        row.session.push_back({(uint8_t)account_type_t::USER, taker, (uint8_t)deal_status_t::NONE,
-            (uint8_t)deal_action_t::CREATE, session_msg, now});
     });
 
     // // 添加交易到期表数据
@@ -344,7 +340,7 @@ void otcbook::opendeal(const name& taker, const name& order_side, const uint64_t
 /**
  * actively close the deal by order taker
  */
-void otcbook::closedeal(const name& account, const uint8_t& account_type, const uint64_t& deal_id, const string& session_msg) {
+void otcbook::closedeal(const name& account, const uint8_t& account_type, const uint64_t& deal_id, const string& close_msg) {
     require_auth( account );
     auto conf = _conf();
     deal_t::idx_t deals(_self, _self.value);
@@ -410,7 +406,7 @@ void otcbook::closedeal(const name& account, const uint8_t& account_type, const 
         row.status = (uint8_t)deal_status_t::CLOSED;
         row.closed_at = time_point_sec(current_time_point());
         row.updated_at = time_point_sec(current_time_point());
-        row.session.push_back({account_type, account, (uint8_t)status, (uint8_t)action, session_msg, row.closed_at});
+        row.close_msg = close_msg;
     });
 
     merchant_t merchant(order_maker);
@@ -455,8 +451,7 @@ void otcbook::closedeal(const name& account, const uint8_t& account_type, const 
     }
 }
 
-void otcbook::canceldeal(const name& account, const uint8_t& account_type, const uint64_t& deal_id,
-                         const string& session_msg, bool is_taker_black) {
+void otcbook::canceldeal(const name& account, const uint8_t& account_type, const uint64_t& deal_id, bool is_taker_black) {
     require_auth( account );
 
     deal_t::idx_t deals(_self, _self.value);
@@ -523,7 +518,7 @@ void otcbook::canceldeal(const name& account, const uint8_t& account_type, const
             row.status = (uint8_t)deal_status_t::CANCELLED;
             row.closed_at = time_point_sec(current_time_point());
             row.updated_at = time_point_sec(current_time_point());
-            row.session.push_back({account_type, account, (uint8_t)status, (uint8_t)deal_action_t::CANCEL, session_msg, row.closed_at});
+            row.close_msg = "cancel deal";
         });
 
     auto deal_quantity = deal_itr->deal_quantity;
@@ -536,7 +531,7 @@ void otcbook::canceldeal(const name& account, const uint8_t& account_type, const
 
 
 void otcbook::processdeal(const name& account, const uint8_t& account_type, const uint64_t& deal_id,
-    uint8_t action_type, const string& session_msg
+    uint8_t action_type
 ) {
     require_auth( account );
 
@@ -593,7 +588,6 @@ void otcbook::processdeal(const name& account, const uint8_t& account_type, cons
     DEAL_ACTION_CASE(MAKER_ACCEPT,          MERCHANT,     UNARBITTED,   CREATED,         MAKER_ACCEPTED)
     DEAL_ACTION_CASE(TAKER_SEND,            USER,         UNARBITTED,   MAKER_ACCEPTED,  TAKER_SENT)
     DEAL_ACTION_CASE(MAKER_RECV_AND_SENT,   MERCHANT,     UNARBITTED,   TAKER_SENT,      MAKER_RECV_AND_SENT)
-    DEAL_ACTION_CASE(ADD_SESSION_MSG,       NONE,         NONE,         NONE,            NONE)
     default:
         check(false, "unsupported process deal action:" + to_string((uint8_t)action_type));
         break;
@@ -623,14 +617,12 @@ void otcbook::processdeal(const name& account, const uint8_t& account_type, cons
         if((uint8_t)deal_action_t::MAKER_RECV_AND_SENT == action_type ) {
             row.merchant_paid_at = time_point_sec(current_time_point());
         }
-
-        row.session.push_back({account_type, account, (uint8_t)status, action_type, session_msg, now});
     });
 }
 
 
 void otcbook::startarbit(const name& account, const uint8_t& account_type, const uint64_t& deal_id,
-    const name& arbiter, const string& session_msg) {
+    const name& arbiter) {
     require_auth( account );
 
     deal_t::idx_t deals(_self, _self.value);
@@ -669,11 +661,10 @@ void otcbook::startarbit(const name& account, const uint8_t& account_type, const
         row.arbit_status = (uint8_t)arbit_status_t::ARBITING;
         row.arbiter = arbiter;
         row.updated_at = time_point_sec(current_time_point());
-        row.session.push_back({account_type, account, (uint8_t)status, (uint8_t)deal_action_t::START_ARBIT, session_msg, now});
-    });
+       });
 }
 
-void otcbook::closearbit(const name& account, const uint64_t& deal_id, const uint8_t& arbit_result, const string& session_msg) {
+void otcbook::closearbit(const name& account, const uint64_t& deal_id, const uint8_t& arbit_result) {
     require_auth( account );
 
     deal_t::idx_t deals(_self, _self.value);
@@ -704,7 +695,6 @@ void otcbook::closearbit(const name& account, const uint64_t& deal_id, const uin
             row.status = (uint8_t)deal_status_t::CLOSED;
             row.closed_at = time_point_sec(current_time_point());
             row.updated_at = time_point_sec(current_time_point());
-            row.session.push_back({(uint8_t)account_type_t::ARBITER, account, (uint8_t)status, (uint8_t)deal_action_t::FINISH_ARBIT, session_msg, now});
         });
 
     auto deal_quantity = deal_itr->deal_quantity;
@@ -740,7 +730,7 @@ void otcbook::closearbit(const name& account, const uint64_t& deal_id, const uin
    }
 }
 
-void otcbook::cancelarbit( const uint8_t& account_type, const name& account, const uint64_t& deal_id, const string& session_msg )
+void otcbook::cancelarbit( const uint8_t& account_type, const name& account, const uint64_t& deal_id )
 {
     require_auth( account );
 
@@ -771,12 +761,10 @@ void otcbook::cancelarbit( const uint8_t& account_type, const name& account, con
     deals.modify( *deal_itr, account, [&]( auto& row ) {
         row.arbit_status = (uint8_t)arbit_status_t::UNARBITTED;
         row.updated_at = now;
-        row.session.push_back({account_type, account, (uint8_t)status,
-            (uint8_t)deal_action_t::CANCEL_ARBIT, session_msg, now});
     });
 }
 
-void otcbook::resetdeal(const name& account, const uint64_t& deal_id, const string& session_msg){
+void otcbook::resetdeal(const name& account, const uint64_t& deal_id){
 
     require_auth( account );
 
@@ -794,8 +782,6 @@ void otcbook::resetdeal(const name& account, const uint64_t& deal_id, const stri
     deals.modify( *deal_itr, account, [&]( auto& row ) {
         row.status = (uint8_t)deal_status_t::CREATED;
         row.updated_at = time_point_sec(current_time_point());
-        row.session.push_back({(uint8_t)account_type_t::ADMIN, account, (uint8_t)status,
-            (uint8_t)deal_action_t::REVERSE, session_msg, now});
     });
 }
 

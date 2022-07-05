@@ -275,19 +275,6 @@ private:
 typedef order_wrapper_impl_t<buy_order_table_t> buy_order_wrapper_t;
 typedef order_wrapper_impl_t<sell_order_table_t> sell_order_wrapper_t;
 
-/**
- * deal session msg(message)
- */
-struct deal_session_msg_t {
-    uint8_t account_type = 0;   // account type
-    name account;               // action account
-    uint8_t status = 0;         // status before action, deal_status_t
-    uint8_t action = 0;         // action type, deal_action_t
-    string msg;                // msg(message)
-    time_point_sec created_at;  // created time at
-
-    EOSLIB_SERIALIZE(deal_session_msg_t,   (account_type)(account)(status)(action)(msg)(created_at) )
-};
 
 /**
  * buy/sell deal
@@ -304,6 +291,7 @@ struct OTCBOOK_TBL deal_t {
     name order_taker;               // taker, user
     asset deal_fee;                 // deal fee
     asset fine_amount;              // aarbit fine amount, not contain fee
+    name pay_type;
     uint8_t status = 0;             // status
     uint8_t arbit_status = 0;       // arbit status
     name arbiter;
@@ -313,10 +301,9 @@ struct OTCBOOK_TBL deal_t {
     time_point_sec updated_at;
     uint64_t order_sn = 0;          // order sn, created by external app
 
-    vector<deal_session_msg_t> session; // session
-
     time_point_sec merchant_accepted_at;  // merchant accepted time
     time_point_sec merchant_paid_at;      // merchant paid time
+    string close_msg;
 
     deal_t() {}
     deal_t(uint64_t i): id(i) {}
@@ -338,11 +325,11 @@ struct OTCBOOK_TBL deal_t {
 
     EOSLIB_SERIALIZE(deal_t,    (id)(order_side)(order_id)(order_price)(deal_quantity)
                                 (order_maker)(merchant_name)
-                                (order_taker)(deal_fee)(fine_amount)
+                                (order_taker)(deal_fee)(fine_amount)(pay_type)
                                 (status)(arbit_status)(arbiter)
                                 (created_at)(closed_at)(updated_at)(order_sn)
-                                (session)
-                                (merchant_accepted_at)(merchant_paid_at))
+                                (merchant_accepted_at)(merchant_paid_at)
+                                (close_msg))
 };
 
 struct OTCBOOK_TBL blacklist_t {
