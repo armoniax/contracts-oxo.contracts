@@ -445,9 +445,10 @@ void otcbook::closedeal(const name& account, const uint8_t& account_type, const 
         && conf.farm_id > 0 && conf.farm_scale > 0 ){
         auto value = multiply_decimal64( fee.amount, get_precision(APLINK_SYMBOL), get_precision(fee.symbol));
         value = value * conf.farm_scale / percent_boost;
-        if (aplink::farm::get_avaliable_apples(farm_arc, conf.farm_id).amount>value)
-            ALLOT(farm_arc, conf.farm_id, deal_itr->order_taker,
-                asset(value, APLINK_SYMBOL), "metabalance farm allot: "+to_string(deal_id));
+        asset apples = asset(0, APLINK_SYMBOL);
+        aplink::farm::available_apples(farm_arc, conf.farm_id, apples);
+        if(apples.amount >= value)
+            ALLOT(farm_arc, conf.farm_id, deal_itr->order_taker,asset(value, APLINK_SYMBOL), "metabalance farm allot: "+to_string(deal_id));
     }
 }
 
