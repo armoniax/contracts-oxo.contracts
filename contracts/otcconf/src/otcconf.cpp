@@ -42,8 +42,8 @@ void otcconf::init(const name& admin) {
     _gstate.fiat_type = CNY;
     _gstate.fee_pct = 50;
     _gstate.stake_assets_contract = {
-        {STAKE_AMAX, AMAX_BANK},
-        {STAKE_CNYD, CNYD_BANK},
+        // {STAKE_AMAX, AMAX_BANK},
+        // {STAKE_CNYD, CNYD_BANK},
         {STAKE_USDT, MIRROR_BANK}
     };
     _gstate.coin_as_stake = {
@@ -54,15 +54,15 @@ void otcconf::init(const name& admin) {
         {USDT_BEP20, STAKE_USDT}
     };
     _gstate.buy_coins_conf = {
-        AMAX_ARC20,
-        CNYD_ARC20,
+        // AMAX_ARC20,
+        // CNYD_ARC20,
         USDT_ERC20,
         USDT_TRC20,
         USDT_BEP20
     };
     _gstate.sell_coins_conf = {
-        AMAX_ARC20,
-        CNYD_ARC20,
+        // AMAX_ARC20,
+        // CNYD_ARC20,
         USDT_ERC20,
         USDT_TRC20,
         USDT_BEP20
