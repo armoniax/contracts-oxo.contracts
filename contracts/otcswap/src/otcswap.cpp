@@ -57,7 +57,8 @@ void otcswap::settleto(const name &user, const asset &fee, asset quantity)
     check(is_account(user), "owner account does not exist");
     auto sym = quantity.symbol;
     auto account = account_t(user);
-
+    _db.get(account);
+    
     auto value = multiply_decimal64( quantity.amount, get_precision(STAKE_USDT), get_precision(quantity.symbol));
     uint16_t percent = 0;
     for(auto &step : _conf().swap_steps){
