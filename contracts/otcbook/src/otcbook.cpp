@@ -341,6 +341,7 @@ void otcbook::opendeal( const name& taker, const name& order_side, const uint64_
  */
 void otcbook::closedeal(const name& account, const uint8_t& account_type, const uint64_t& deal_id, const string& close_msg) {
     require_auth( account );
+
     auto conf = _conf();
     deal_t::idx_t deals(_self, _self.value);
     auto deal_itr = deals.find(deal_id);
@@ -393,19 +394,20 @@ void otcbook::closedeal(const name& account, const uint8_t& account_type, const 
                 + " at status: " + to_string((uint8_t)status) );
     }
 
-    auto stake_quantity = _calc_order_stakes(deal_quantity);
+    auto now                        = current_time_point();
+    auto stake_quantity             = _calc_order_stakes(deal_quantity);
     order_wrapper_ptr->modify(_self, [&]( auto& row ) {
-        row.stake_frozen -= stake_quantity;
-        row.va_frozen_quantity -= deal_quantity;
-        row.va_fulfilled_quantity += deal_quantity;
-        row.updated_at = time_point_sec(current_time_point());
+        row.stake_frozen            -= stake_quantity;
+        row.va_frozen_quantity      -= deal_quantity;
+        row.va_fulfilled_quantity   += deal_quantity;
+        row.updated_at              = now;
     });
 
     deals.modify( *deal_itr, account, [&]( auto& row ) {
-        row.status = (uint8_t)deal_status_t::CLOSED;
-        row.closed_at = time_point_sec(current_time_point());
-        row.updated_at = time_point_sec(current_time_point());
-        row.close_msg = close_msg;
+        row.status                  = (uint8_t)deal_status_t::CLOSED;
+        row.closed_at               = now;
+        row.updated_at              = now;
+        row.close_msg               = close_msg;
     });
 
     merchant_t merchant(order_maker);
@@ -418,9 +420,9 @@ void otcbook::closedeal(const name& account, const uint8_t& account_type, const 
         "otcfee:"+to_string(order_id) + ":" +  to_string(deal_id));
 
     auto fee = deal_itr->deal_fee;
-    asset deal_amount = _calc_deal_amount(deal_itr->deal_quantity);
-    name settle_arc = conf.managers.at(otc::manager_type::settlement);
-    if(is_account(settle_arc)){
+    auto deal_amount = _calc_deal_amount(deal_itr->deal_quantity);
+    auto settle_arc = conf.managers.at(otc::manager_type::settlement);
+    if (is_account(settle_arc)) {
         SETTLE_DEAL(settle_arc,
                     deal_id, 
                     deal_itr->order_maker,
@@ -439,15 +441,16 @@ void otcbook::closedeal(const name& account, const uint8_t& account_type, const 
                     fee ,
                     deal_amount);
     }
+
     name farm_arc = conf.managers.at(otc::manager_type::aplinkfarm);
-    if(is_account(farm_arc) 
-        && conf.farm_id > 0 && conf.farm_scale > 0 ){
+    if (is_account(farm_arc) && conf.farm_id > 0 && conf.farm_scale > 0 ){
         auto value = multiply_decimal64( fee.amount, get_precision(APLINK_SYMBOL), get_precision(fee.symbol));
         value = value * conf.farm_scale / percent_boost;
         asset apples = asset(0, APLINK_SYMBOL);
         aplink::farm::available_apples(farm_arc, conf.farm_id, apples);
         if(apples.amount >= value)
-            ALLOT(farm_arc, conf.farm_id, deal_itr->order_taker,asset(value, APLINK_SYMBOL), "metabalance farm allot: "+to_string(deal_id));
+            ALLOT(  farm_arc, conf.farm_id, deal_itr->order_taker,asset(value, APLINK_SYMBOL), 
+                    "metabalance farm allot: "+to_string(deal_id) );
     }
 }
 
@@ -530,9 +533,7 @@ void otcbook::canceldeal(const name& account, const uint8_t& account_type, const
 }
 
 
-void otcbook::processdeal(const name& account, const uint8_t& account_type, const uint64_t& deal_id,
-    uint8_t action_type
-) {
+void otcbook::processdeal(const name& account, const uint8_t& account_type, const uint64_t& deal_id, uint8_t action_type) {
     require_auth( account );
 
     deal_t::idx_t deals(_self, _self.value);
@@ -582,15 +583,14 @@ void otcbook::processdeal(const name& account, const uint8_t& account_type, cons
         next_status = deal_status_t::_next_status;                                      \
         break;
 
-    switch ((deal_action_t)action_type)
-    {
-    // /*               action              account_type  arbit_status, limited_status   next_status  */
-    DEAL_ACTION_CASE(MAKER_ACCEPT,          MERCHANT,     UNARBITTED,   CREATED,         MAKER_ACCEPTED)
-    DEAL_ACTION_CASE(TAKER_SEND,            USER,         UNARBITTED,   MAKER_ACCEPTED,  TAKER_SENT)
-    DEAL_ACTION_CASE(MAKER_RECV_AND_SENT,   MERCHANT,     UNARBITTED,   TAKER_SENT,      MAKER_RECV_AND_SENT)
-    default:
-        check(false, "unsupported process deal action:" + to_string((uint8_t)action_type));
-        break;
+    switch( (deal_action_t)action_type ){
+        // /*               action              account_type  arbit_status, limited_status   next_status  */
+        DEAL_ACTION_CASE(MAKER_ACCEPT,          MERCHANT,     UNARBITTED,   CREATED,         MAKER_ACCEPTED)
+        DEAL_ACTION_CASE(TAKER_SEND,            USER,         UNARBITTED,   MAKER_ACCEPTED,  TAKER_SENT)
+        DEAL_ACTION_CASE(MAKER_RECV_AND_SENT,   MERCHANT,     UNARBITTED,   TAKER_SENT,      MAKER_RECV_AND_SENT)
+        default:
+            check(false, "unsupported process deal action:" + to_string((uint8_t)action_type));
+            break;
     }
 
     if (limited_status != deal_status_t::NONE)
