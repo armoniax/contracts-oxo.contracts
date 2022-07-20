@@ -264,20 +264,19 @@ void otcbook::closeorder(const name& owner, const name& order_side, const uint64
 
 }
 
-void otcbook::opendeal(const name& taker, const name& order_side, const uint64_t& order_id,
-    const asset& deal_quantity, const uint64_t& order_sn, const name& pay_type) {
-    auto conf = _conf();
-    check(conf.status == (uint8_t)status_type::RUNNING, "service is in maintenance");
+void otcbook::opendeal( const name& taker, const name& order_side, const uint64_t& order_id,
+                        const asset& deal_quantity, const uint64_t& order_sn, const name& pay_type) {
     require_auth( taker );
 
+    auto conf = _conf();
+    check( conf.status == (uint8_t)status_type::RUNNING, "service is in maintenance" );
     check( ORDER_SIDES.count(order_side) != 0, "Invalid order side" );
 
-    auto order_wrapper_ptr = (order_side == BUY_SIDE) ?
-        buy_order_wrapper_t::get_from_db(_self, _self.value, order_id)
-        : sell_order_wrapper_t::get_from_db(_self, _self.value, order_id);
+    auto order_wrapper_ptr = (order_side == BUY_SIDE) ? buy_order_wrapper_t::get_from_db(_self, _self.value, order_id)
+                                                      : sell_order_wrapper_t::get_from_db(_self, _self.value, order_id);
     check( order_wrapper_ptr != nullptr, "order not found");
     const auto &order = order_wrapper_ptr->get_order();
-    check( order.owner != taker, "taker can not be equal to maker");
+    check( order.owner != taker, "taker cannot be equal to maker" );
     check( deal_quantity.symbol == order.va_quantity.symbol, "Token Symbol mismatch" );
     check( order.status == (uint8_t)order_status_t::RUNNING, "order not running" );
     check( order.va_quantity >= order.va_frozen_quantity + order.va_fulfilled_quantity + deal_quantity,
@@ -285,16 +284,15 @@ void otcbook::opendeal(const name& taker, const name& order_side, const uint64_t
     check( deal_quantity >= order.va_min_take_quantity, "Order's min accept quantity not met!" );
     check( deal_quantity <= order.va_max_take_quantity, "Order's max accept quantity not met!" );
 
-    auto now = current_time_point();
+    auto now                    = current_time_point();
 
     blacklist_t::idx_t blacklist_tbl(_self, _self.value);
-    auto blacklist_itr = blacklist_tbl.find(taker.value);
-    CHECK(blacklist_itr == blacklist_tbl.end() || blacklist_itr->expired_at <= now,
-        "taker is in blacklist")
+    auto blacklist_itr          = blacklist_tbl.find(taker.value);
+    CHECK( blacklist_itr == blacklist_tbl.end() || blacklist_itr->expired_at <= now, "taker is blacklisted" )
 
-    asset order_price = order.va_price;
-    name order_maker = order.owner;
-    string merchant_name = order.merchant_name;
+    auto order_price            = order.va_price;
+    auto order_maker            = order.owner;
+    auto merchant_name          = order.merchant_name;
 
     deal_t::idx_t deals(_self, _self.value);
     auto ordersn_index 			= deals.get_index<"ordersn"_n>();
@@ -303,7 +301,8 @@ void otcbook::opendeal(const name& taker, const name& order_side, const uint64_t
     auto deal_fee = _calc_deal_fee(deal_quantity);
 
     auto deal_id = deals.available_primary_key();
-    deals.emplace( taker, [&]( auto& row ) {
+    // deals.emplace( taker, [&]( auto& row ) {
+    deals.emplace( _self,       [&]( auto& row ) { //free user from paying ram fees
         row.id 					= deal_id;
         row.order_side 			= order_side;
         row.merchant_name       = merchant_name;
@@ -313,8 +312,8 @@ void otcbook::opendeal(const name& taker, const name& order_side, const uint64_t
         row.order_maker			= order_maker;
         row.order_taker			= taker;
         row.pay_type            = pay_type;
-        row.status				=(uint8_t)deal_status_t::CREATED;
-        row.arbit_status        =(uint8_t)arbit_status_t::UNARBITTED;
+        row.status				= (uint8_t)deal_status_t::CREATED;
+        row.arbit_status        = (uint8_t)arbit_status_t::UNARBITTED;
         row.created_at			= now;
         row.updated_at          = now;
         row.order_sn 			= order_sn;
@@ -330,7 +329,7 @@ void otcbook::opendeal(const name& taker, const name& order_side, const uint64_t
 
     order_wrapper_ptr->modify(_self, [&]( auto& row ) {
         row.va_frozen_quantity 	+= deal_quantity;
-        row.updated_at          = time_point_sec(current_time_point());
+        row.updated_at          = now;
     });
 
     NOTIFICATION(order_maker, conf.app_info, 
