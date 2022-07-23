@@ -40,10 +40,12 @@ void otcswap::ontransfer(name from, name to, asset quantity, string memo)
     auto account = account_t(from);
     check(_db.get(account), "account does not exist");
     check(quantity.amount <= account.balance, "overdrawn balance");
-    auto value = multiply_decimal64( quantity.amount, get_precision(STAKE_USDT), get_precision(quantity.symbol));
-    auto topup_quantity = asset(quantity.amount, STAKE_USDT);
-    TRANSFER(MIRROR_BANK, from, topup_quantity, memo);
+
     account.balance -= quantity.amount;
+    
+    auto value = multiply_decimal64( quantity.amount, get_precision(STAKE_USDT), get_precision(quantity.symbol));
+    auto topup_quantity = asset(value, STAKE_USDT);
+    TRANSFER(MIRROR_BANK, from, topup_quantity, memo);
 
     _db.set(account);
 }
@@ -57,16 +59,19 @@ void otcswap::settleto(const name &user, const asset &fee, asset quantity)
     check(is_account(user), "owner account does not exist");
     auto sym = quantity.symbol;
     auto account = account_t(user);
+    _db.get(account);
 
     auto value = multiply_decimal64( quantity.amount, get_precision(STAKE_USDT), get_precision(quantity.symbol));
     uint16_t percent = 0;
     for(auto &step : _conf().swap_steps){
-        if(quantity.amount >= step.quantity_step) percent = step.quote_reward_pct;
+        if(value >= step.quantity_step) percent = step.quote_reward_pct;
         else break;
     }
-    int64_t amount = fee.amount * percent/percent_boost;
-    account.balance += amount;
-    account.sum += amount;
+
+    auto baseamt = multiply_decimal64( fee.amount, get_precision(SCORE_SYMBOL), get_precision(fee.symbol));
+    int64_t balance = baseamt * percent/percent_boost;
+    account.balance += balance;
+    account.sum += balance;
     _db.set(account, _self);
 }
 } /// namespace eosio
