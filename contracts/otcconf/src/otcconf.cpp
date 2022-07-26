@@ -29,14 +29,14 @@ void otcconf::init(const name& admin) {
     };
     _gstate.managers = {
         {manager_type::admin,admin},
-        {manager_type::otcbook,"metabalanceb"_n},
-        {manager_type::settlement,"metasettle11"_n},
-        {manager_type::swaper, "metaswap1111"_n},
-        {manager_type::aplinkfarm, "aplinkfarm13"_n},
+        {manager_type::otcbook,"meta.book"_n},
+        {manager_type::settlement,"meta.settle"_n},
+        {manager_type::swaper, "meta.swap"_n},
+        {manager_type::aplinkfarm, "aplink.farm"_n},
         {manager_type::feetaker,"oxo.feeadmin"_n},
         {manager_type::arbiter,"casharbitoo1"_n},
         {manager_type::cashbank, "amax.mtoken"_n},
-        {manager_type::scorebank, "amax.arc"_n}
+        {manager_type::scorebank, "meta.token"_n}
     };
     _gstate.pay_type = { CNYDPAY, BANK, WECHAT, ALIPAY };
     _gstate.fiat_type = CNY;

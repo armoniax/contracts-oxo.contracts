@@ -53,7 +53,7 @@ public:
     /**
      * ontransfer, trigger by recipient of transfer()
      */
-    [[eosio::on_notify("amax.arc::transfer")]] 
+    [[eosio::on_notify("meta.token::transfer")]] 
     void ontransfer(name from, name to, asset quantity, string memo);
 
     /**
