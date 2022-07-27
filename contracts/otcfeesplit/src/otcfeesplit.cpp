@@ -50,7 +50,9 @@ void otcfeesplit::setratios(const map<name, uint32_t>& ratios, const bool& to_ad
 }
 
 void otcfeesplit::ontransfer(const name& from, const name& to, const asset& quantity, const string& memo) {
-    CHECKC( to == _self, err::ACCOUNT_INVALID, "not to self" )
+    if (from == get_self() || to != get_self()) 
+        return;
+        
     CHECKC( quantity.amount > 0, err::PARAM_ERROR, "negative amount" )
 
     auto precision              = get_precision(quantity.symbol);

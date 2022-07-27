@@ -37,8 +37,8 @@ struct [[eosio::table("global"), eosio::contract("otcfeesplit")]] global_t {
 
     map<name,uint32_t> split_ratios = { 
         { "amax.daodev"_n,    2000 },
-        { "amax.settle"_n,    4000 },
-        { "amax.swap"_n,      4000 }
+        { "meta.settle"_n,    4000 },
+        { "meta.swap"_n,      4000 }
     };
 
     global_t() {}
