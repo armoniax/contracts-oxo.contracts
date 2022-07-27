@@ -44,11 +44,11 @@ icon: @ICON_BASE_URL@/@TOKEN_ICON_URI@
 settle a deal , will send reward to user if user has a level.
 
 
-<h1 class="contract">pick</h1>
+<h1 class="contract">claim</h1>
 
 ---
 spec_version: "0.1.0"
-title: pick settlement rewards
-summary: 'pick settlement rewards, support 20 rewards'
+title: claim settlement rewards
+summary: 'claim settlement rewards, support 20 rewards'
 icon: @ICON_BASE_URL@/@TOKEN_ICON_URI@
 ---

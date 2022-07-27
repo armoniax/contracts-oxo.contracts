@@ -59,13 +59,13 @@ public:
                 const time_point_sec& end_at);
 
     /**
-     * @brief pick rewards
+     * @brief claim rewards
      * 
      * @param reciptian 
      * @param rewards reward_id array, support lessthan 20 rewards
      */
     [[eosio::action]]
-    void pick(const name& reciptian, vector<uint64_t> rewards);
+    void claim(const name& reciptian, vector<uint64_t> rewards);
 
     using deal_action = eosio::action_wrapper<"deal"_n, &settle::deal>;
 };

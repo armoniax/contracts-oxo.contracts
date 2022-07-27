@@ -119,7 +119,7 @@ void settle::deal(const uint64_t& deal_id,
     _db.set(reward, _self);
 }
 
-void settle::pick(const name& reciptian, vector<uint64_t> rewards){
+void settle::claim(const name& reciptian, vector<uint64_t> rewards){
     require_auth(reciptian);
 
     auto cash_quantity = asset(0, CASH_SYMBOL);

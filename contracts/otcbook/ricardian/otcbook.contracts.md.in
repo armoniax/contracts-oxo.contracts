@@ -52,7 +52,7 @@ summary: 'Open a deal to an order'
 icon: @ICON_BASE_URL@/@TOKEN_ICON_URI@
 ---
 
-A counterparty can actively seek through a list of open orders and pick one
+A counterparty can actively seek through a list of open orders and claim one
 to deal with. Once a deal is openned, a certain amount of funds will be thus frozen
 or locked in the order from others to spend it until either the fund is unfrozne or settled.
 
