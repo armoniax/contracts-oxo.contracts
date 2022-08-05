@@ -128,7 +128,8 @@ struct [[eosio::table("global"), eosio::contract("otcconf")]] global_t {
     // for settle config
     vector<settle_level_config> settle_levels;
     uint64_t farm_id = 0;
-    uint32_t farm_scale = 0;
+    map <symbol_code, uint32_t> farm_scales;
+    // uint32_t farm_scale = 0;
 
     // for swap config
     vector<swap_step_config> swap_steps;
@@ -139,7 +140,9 @@ struct [[eosio::table("global"), eosio::contract("otcconf")]] global_t {
                                 (stake_assets_contract)(coin_as_stake)
                                 (buy_coins_conf)(sell_coins_conf)
                                 (accepted_timeout)(payed_timeout)
-                                (settle_levels)(farm_id)(farm_scale)
+                                (settle_levels)(farm_id)
+                                // (farm_scale)
+                                (farm_scales)
                                 (swap_steps)
     )
 };

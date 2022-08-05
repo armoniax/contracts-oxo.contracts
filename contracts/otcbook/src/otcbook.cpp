@@ -422,33 +422,36 @@ void otcbook::closedeal(const name& account, const uint8_t& account_type, const 
     auto fee = deal_itr->deal_fee;
     auto deal_amount = _calc_deal_amount(deal_itr->deal_quantity);
     auto settle_arc = conf.managers.at(otc::manager_type::settlement);
-    if (is_account(settle_arc)) {
-        SETTLE_DEAL(settle_arc,
-                    deal_id, 
-                    deal_itr->order_maker,
-                    deal_itr->order_taker, 
-                    deal_amount,
-                    fee,
-                    0, 
-                    deal_itr->created_at, 
-                    deal_itr->closed_at);
-    }    
+    if (deal_amount.symbol == STAKE_USDT) {
+        if (is_account(settle_arc)) {
+            SETTLE_DEAL(settle_arc,
+                        deal_id, 
+                        deal_itr->order_maker,
+                        deal_itr->order_taker, 
+                        deal_amount,
+                        fee,
+                        0, 
+                        deal_itr->created_at, 
+                        deal_itr->closed_at);
+        }    
 
-    name swap_arc = conf.managers.at(otc::manager_type::swaper);
-    if(is_account(swap_arc)){
-        SWAP_SETTLE(swap_arc, 
-                    deal_itr->order_taker, 
-                    fee ,
-                    deal_amount);
+        name swap_arc = conf.managers.at(otc::manager_type::swaper);
+        if(is_account(swap_arc)){
+            SWAP_SETTLE(swap_arc, 
+                        deal_itr->order_taker, 
+                        fee ,
+                        deal_amount);
+        }
     }
 
     name farm_arc = conf.managers.at(otc::manager_type::aplinkfarm);
-    if (is_account(farm_arc) && conf.farm_id > 0 && conf.farm_scale > 0 ){
+    if (is_account(farm_arc) && conf.farm_id > 0 && conf.farm_scales.count(deal_amount.symbol.code())){
+        auto scale = conf.farm_scales.at(deal_amount.symbol.code());
         auto value = multiply_decimal64( fee.amount, get_precision(APLINK_SYMBOL), get_precision(fee.symbol));
-        value = value * conf.farm_scale / percent_boost;
+        value = value * scale / percent_boost;
         asset apples = asset(0, APLINK_SYMBOL);
         aplink::farm::available_apples(farm_arc, conf.farm_id, apples);
-        if(apples.amount >= value)
+        if(apples.amount >= value && value > 0)
             ALLOT(  farm_arc, conf.farm_id, deal_itr->order_taker,asset(value, APLINK_SYMBOL), 
                     "metabalance farm allot: "+to_string(deal_id) );
     }
