@@ -70,7 +70,10 @@ public:
     void setmanager(const name& type, const name& account);
 
     [[eosio::action]]
-    void setfarm(const name& farmname, const uint64_t& farm_id, const uint32_t& farm_scale);
+    void setfeepct(const uint64_t& feepct);
+
+    [[eosio::action]]
+    void setfarm(const name& farmname, const uint64_t& farm_id, const symbol_code& symcode, const uint32_t& farm_scale);
 
     [[eosio::action]]
     void setappname(const name& otc_name);

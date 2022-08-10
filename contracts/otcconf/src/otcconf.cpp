@@ -100,6 +100,12 @@ void otcconf::setmanager(const name& type, const name& account){
     _gstate.managers[type] = account;
 }
 
+void otcconf::setfeepct(const uint64_t& feepct){
+    require_auth(_gstate.managers.at(manager_type::admin));
+    CHECKC(feepct >= 0, err::NOT_POSITIVE, "unsupport negtive fee percent");
+    _gstate.fee_pct = feepct;
+}
+
 void otcconf::setsettlelv(const vector<settle_level_config>& configs){
     require_auth(_gstate.managers.at(manager_type::admin));
     _gstate.settle_levels = configs;
@@ -111,11 +117,12 @@ void otcconf::setswapstep(const vector<swap_step_config> rates)
     _gstate.swap_steps = rates;
 }
 
-void otcconf::setfarm(const name& farmname, const uint64_t& farm_id, const uint32_t& farm_scale){
+void otcconf::setfarm(const name& farmname, const uint64_t& farm_id, const symbol_code& symcode, const uint32_t& farm_scale){
     require_auth(_gstate.managers.at(manager_type::admin));
     _gstate.managers[manager_type::aplinkfarm] = farmname;
     _gstate.farm_id = farm_id;
-    _gstate.farm_scale = farm_scale;
+    CHECKC(farm_scale >= 0, err::NOT_POSITIVE, "farm scale value invalid");
+    _gstate.farm_scales[symcode] = farm_scale;
 }
 
 void otcconf::setappname(const name& otc_name) {
