@@ -48,7 +48,7 @@ void otcconf::init(const name& admin) {
     };
     _gstate.pay_type = { BANK, WECHAT, ALIPAY };
     _gstate.fiat_type = CNY;
-    _gstate.fee_pct = 50;
+    _gstate.fee_pct = 80;
     _gstate.stake_assets_contract = {
         // {STAKE_AMAX, AMAX_BANK},
         // {STAKE_CNYD, CNYD_BANK},
