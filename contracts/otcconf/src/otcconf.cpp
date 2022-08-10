@@ -100,6 +100,12 @@ void otcconf::setmanager(const name& type, const name& account){
     _gstate.managers[type] = account;
 }
 
+void otcconf::setfeepct(const uint64_t& feepct){
+    require_auth(_gstate.managers.at(manager_type::admin));
+    CHECKC(feepct >= 0, err::NOT_POSITIVE, "unsupport negtive fee percent");
+    _gstate.fee_pct = feepct;
+}
+
 void otcconf::setsettlelv(const vector<settle_level_config>& configs){
     require_auth(_gstate.managers.at(manager_type::admin));
     _gstate.settle_levels = configs;
