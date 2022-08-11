@@ -13,8 +13,8 @@ static constexpr eosio::name active_permission{"active"_n};
 			act.send( account, quantity , memo );}
 
 
-#define NOTIFICATION(account, info, memo) \
-    {	metabalance::otcbook::notification_action act{ _self, { {_self, active_permission} } };\
+#define DEAL_NOTIFY(account, info, memo) \
+    {	metabalance::otcbook::dealnotify_action act{ _self, { {_self, active_permission} } };\
 			act.send( account, info , memo );}
 
 
@@ -332,7 +332,7 @@ void otcbook::opendeal( const name& taker, const name& order_side, const uint64_
         row.updated_at          = now;
     });
 
-    NOTIFICATION(order_maker, conf.app_info, 
+    DEAL_NOTIFY(order_maker, conf.app_info, 
         "deal.new, meta.taker "+ taker.to_string() + ", meta.quantity " + deal_quantity.to_string());
 }
 
@@ -553,12 +553,12 @@ void otcbook::processdeal(const name& account, const uint8_t& account_type, cons
     switch ((account_type_t) account_type) {
     case account_type_t::MERCHANT:
         check( deal_itr->order_maker == account, "maker account mismatched");
-        NOTIFICATION(deal_itr->order_taker, _conf().app_info, 
+        DEAL_NOTIFY(deal_itr->order_taker, _conf().app_info, 
             "deal.process, meta.maker "+ account.to_string() + "meta.processed meta.deal " + to_string(deal_id) + " deal.status"+to_string(action_type));
         break;
     case account_type_t::USER:
         check( deal_itr->order_taker == account, "taker account mismatched");
-        NOTIFICATION(deal_itr->order_maker, _conf().app_info, 
+        DEAL_NOTIFY(deal_itr->order_maker, _conf().app_info, 
             "deal.process, meta.taker "+ account.to_string() + "meta.processed meta.deal " + to_string(deal_id) + " deal.status"+to_string(action_type));
         break;
     case account_type_t::ARBITER:
@@ -817,8 +817,9 @@ void otcbook::withdraw(const name& owner, asset quantity){
 void otcbook::deposit(name from, name to, asset quantity, string memo) {
     if(_self == from || to != _self) return;
 
-    check( _conf().stake_assets_contract.count(quantity.symbol), "Token Symbol not allowed" );
-    check( _conf().stake_assets_contract.at(quantity.symbol) == get_first_receiver(), "Token Symbol not allowed" );
+    check( _conf().stake_assets_contract.count(quantity.symbol), "Token Symbol not allowed: " + quantity.to_string() );
+    check( _conf().stake_assets_contract.at(quantity.symbol) == get_first_receiver(), "Token Contract not allowed: " 
+                                                + _conf().stake_assets_contract.at(quantity.symbol).to_string() );
     
     merchant_t merchant(from);
     check(_dbc.get( merchant ),"merchant is not set, from:" + from.to_string()+ ",to:" + to.to_string());
@@ -853,7 +854,7 @@ void otcbook::stakechanged(const name& account, const asset &quantity, const str
     require_recipient(account);
 }
 
-void otcbook::notification(const name& account, const AppInfo_t &info, const string& memo){
+void otcbook::dealnotify(const name& account, const AppInfo_t &info, const string& memo){
     require_auth(get_self());
     require_recipient(account);
 }

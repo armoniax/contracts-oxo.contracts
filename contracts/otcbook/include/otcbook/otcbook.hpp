@@ -287,10 +287,10 @@ public:
     void stakechanged(const name& account, const asset &quantity, const string& memo);
 
     [[eosio::action]]
-    void notification(const name& account, const otc::AppInfo_t &info, const string& memo);
+    void dealnotify(const name& account, const otc::AppInfo_t &info, const string& memo);
     
     using stakechanged_action = eosio::action_wrapper<"stakechanged"_n, &otcbook::stakechanged>;
-    using notification_action = eosio::action_wrapper<"notification"_n, &otcbook::notification>;
+    using dealnotify_action = eosio::action_wrapper<"dealnotify"_n, &otcbook::dealnotify>;
 
 private:
     asset _calc_order_stakes(const asset &quantity);
