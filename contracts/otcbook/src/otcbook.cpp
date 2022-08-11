@@ -445,14 +445,14 @@ void otcbook::closedeal(const name& account, const uint8_t& account_type, const 
     }
 
     name farm_arc = conf.managers.at(otc::manager_type::aplinkfarm);
-    if (is_account(farm_arc) && conf.farm_id > 0 && conf.farm_scales.count(deal_amount.symbol.code())){
+    if (is_account(farm_arc) && conf.farm_lease_id > 0 && conf.farm_scales.count(deal_amount.symbol.code())){
         auto scale = conf.farm_scales.at(deal_amount.symbol.code());
         auto value = multiply_decimal64( fee.amount, get_precision(APLINK_SYMBOL), get_precision(fee.symbol));
         value = value * scale / percent_boost;
         asset apples = asset(0, APLINK_SYMBOL);
-        aplink::farm::available_apples(farm_arc, conf.farm_id, apples);
+        aplink::farm::available_apples(farm_arc, conf.farm_lease_id, apples);
         if(apples.amount >= value && value > 0)
-            ALLOT(  farm_arc, conf.farm_id, deal_itr->order_taker,asset(value, APLINK_SYMBOL), 
+            ALLOT(  farm_arc, conf.farm_lease_id, deal_itr->order_taker,asset(value, APLINK_SYMBOL), 
                     "metabalance farm allot: "+to_string(deal_id) );
     }
 }

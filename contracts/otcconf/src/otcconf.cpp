@@ -85,7 +85,7 @@ void otcconf::init(const name& admin) {
         {20000000000000, 4000, 6000}
     };
 
-    _gstate.farm_id = 3;
+    _gstate.farm_lease_id = 3;
     _gstate.farm_scales = {
         {STAKE_USDT.code(), 25000},
         {STAKE_AMAX.code(), 6250000}
@@ -118,10 +118,10 @@ void otcconf::setswapstep(const vector<swap_step_config> rates)
     _gstate.swap_steps = rates;
 }
 
-void otcconf::setfarm(const name& farmname, const uint64_t& farm_id, const symbol_code& symcode, const uint32_t& farm_scale){
+void otcconf::setfarm(const name& farmname, const uint64_t& farm_lease_id, const symbol_code& symcode, const uint32_t& farm_scale){
     require_auth(_gstate.managers.at(manager_type::admin));
     _gstate.managers[manager_type::aplinkfarm] = farmname;
-    _gstate.farm_id = farm_id;
+    _gstate.farm_lease_id = farm_lease_id;
     CHECKC(farm_scale >= 0, err::NOT_POSITIVE, "farm scale value invalid");
     _gstate.farm_scales[symcode] = farm_scale;
 }

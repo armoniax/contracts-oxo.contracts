@@ -80,14 +80,14 @@ typedef set<symbol> symbol_set;
 typedef set<name> name_set;
 
 namespace manager_type {
-    static constexpr eosio::name admin         = "admin"_n;
-    static constexpr eosio::name feetaker         = "feetaker"_n;
-    static constexpr eosio::name arbiter         = "arbiter"_n;
-    static constexpr eosio::name otcbook        = "otcbook"_n;
+    static constexpr eosio::name admin              = "admin"_n;
+    static constexpr eosio::name feetaker           = "feetaker"_n;
+    static constexpr eosio::name arbiter            = "arbiter"_n;
+    static constexpr eosio::name otcbook            = "otcbook"_n;
     static constexpr eosio::name settlement         = "settlement"_n;
-    static constexpr eosio::name swaper         = "swaper"_n;
-    static constexpr eosio::name cashbank         = "cashbank"_n;
-    static constexpr eosio::name scorebank         = "scorebank"_n;
+    static constexpr eosio::name swaper             = "swaper"_n;
+    static constexpr eosio::name cashbank           = "cashbank"_n;
+    static constexpr eosio::name scorebank          = "scorebank"_n;
     static constexpr eosio::name aplinkfarm         = "aplinkfarm"_n;
 };
 
@@ -127,8 +127,8 @@ struct [[eosio::table("global"), eosio::contract("otcconf")]] global_t {
 
     // for settle config
     vector<settle_level_config> settle_levels;
-    uint64_t farm_id = 0;
     map <symbol_code, uint32_t> farm_scales;
+    uint64_t farm_lease_id = 0;       //aplink.farm lease ID
 
     // for swap config
     vector<swap_step_config> swap_steps;
@@ -139,10 +139,37 @@ struct [[eosio::table("global"), eosio::contract("otcconf")]] global_t {
                                 (stake_assets_contract)(coin_as_stake)
                                 (buy_coins_conf)(sell_coins_conf)
                                 (accepted_timeout)(payed_timeout)
-                                (settle_levels)(farm_id)
-                                (farm_scales)
-                                (swap_steps)
-    )
+                                (settle_levels)
+                                (farm_scales)(farm_lease_id)
+                                (swap_steps) )
+
+    //EOSLIB_SERIALIZE
+    //write op
+    // template<typename DataStream>
+    // friend DataStream& operator << ( DataStream& ds, const global_t& t ) {
+    //     return ds   << t.status
+    //                 << t.app_info
+    //                 << t.managers
+    //                 << t.pay_type
+    //                 << t.fiat_type
+    //                 << t.fee_pct
+    //                 << t.stake_assets_contract
+    //                 << t.coin_as_stake
+    //                 << t.buy_coins_conf
+    //                 << t.sell_coins_conf
+    //                 << t.accepted_timeout
+    //                 << t.payed_timeout
+    //                 << t.settle_levels
+    //                 << t.farm_scales 
+    //                 << t.farm_lease_id
+    //                 << t.swap_steps ;
+    // }
+    
+    // //read op (read as is)
+    // template<typename DataStream>
+    // friend DataStream& operator >> ( DataStream& ds, global_t& t ) {  
+    //     return ds;
+    // }  
 };
 typedef eosio::singleton< "global"_n, global_t > global_singleton;
 
