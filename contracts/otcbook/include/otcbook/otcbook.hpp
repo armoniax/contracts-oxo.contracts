@@ -261,6 +261,10 @@ public:
      * @param to must be this contract name
      * @param quantity transfer quantity
      * @param memo memo
+     *          empty memo: for merchant deposite
+     *          process:{account_type}:{deal_id}:{action_type}
+     *              auto process deal for transfer ARC token
+     *              quantity will transfer to account
      * @note require from auth
      */
     [[eosio::on_notify("*::transfer")]]
@@ -302,10 +306,10 @@ public:
     void stakechanged(const name& account, const asset &quantity, const string& memo);
 
     [[eosio::action]]
-    void notification(const name& account, const otc::AppInfo_t &info, const string& memo);
+    void dealnotify(const name& account, const otc::AppInfo_t &info, const string& memo);
     
     using stakechanged_action = eosio::action_wrapper<"stakechanged"_n, &otcbook::stakechanged>;
-    using notification_action = eosio::action_wrapper<"notification"_n, &otcbook::notification>;
+    using dealnotify_action = eosio::action_wrapper<"dealnotify"_n, &otcbook::dealnotify>;
 
 private:
     void _deposit(name from, name to, asset quantity, string memo);
