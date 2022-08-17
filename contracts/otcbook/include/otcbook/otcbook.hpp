@@ -95,6 +95,20 @@ public:
     [[eosio::action]]
     void setmerchant(const name& owner, const name& merchant, const string &merchant_name, const string &merchant_detail, const string& email, const string& memo);
 
+   /**
+     * set merchant
+     * @param merchant account name
+     * @param merchant_name merchant's name
+     * @param merchant_detail merchant's detail
+     * @param pay_methods pay methods
+     * @param email email of merchant
+     * @param memo memo of merchant
+     * @note require merchant auth
+     */
+    [[eosio::action]]
+    void uptmerchant(const name& merchant, const string &merchant_name, const string &merchant_detail, const string& email, const string& memo);
+
+
     /**
      * enable merchant by admin
      * @param owner merchant account name
@@ -250,7 +264,8 @@ public:
      * @note require from auth
      */
     [[eosio::on_notify("*::transfer")]]
-    void deposit(name from, name to, asset quantity, string memo);
+    void ontransfer(name from, name to, asset quantity, string memo);
+
 
     /**
      * withdraw
@@ -293,6 +308,10 @@ public:
     using notification_action = eosio::action_wrapper<"notification"_n, &otcbook::notification>;
 
 private:
+    void _deposit(name from, name to, asset quantity, string memo);
+
+    deal_t _process(const name& account, const uint8_t& account_type, const uint64_t& deal_id, uint8_t action);
+
     asset _calc_order_stakes(const asset &quantity);
 
     asset _calc_deal_fee(const asset &quantity);

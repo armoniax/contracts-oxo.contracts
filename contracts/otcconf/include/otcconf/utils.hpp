@@ -101,6 +101,21 @@ string_view trim(string_view sv) {
     return sv;
 }
 
+uint64_t to_uint64(string_view s, const char* err_title) {
+    errno = 0;
+    uint64_t ret = std::strtoull(s.data(), nullptr, 10);
+    CHECK(errno == 0, string(err_title) + ": convert str to uint64 error: " + std::strerror(errno));
+    return ret;
+}
+
+
+uint64_t to_uint8(string_view s, const char* err_title) {
+    errno = 0;
+    uint8_t ret = std::strtoull(s.data(), nullptr, 10);
+    CHECK(errno == 0, string(err_title) + ": convert str to uint8 error: " + std::strerror(errno));
+    return ret;
+}
+
 vector<string_view> split(string_view str, string_view delims = " ")
 {
     vector<string_view> res;

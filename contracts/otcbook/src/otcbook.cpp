@@ -93,6 +93,24 @@ void otcbook::setmerchant(const name& owner, const name& merchant, const string 
     _dbc.set( merchant_raw, get_self() );
 }
 
+void otcbook::uptmerchant(const name& merchant, const string &merchant_name, const string &merchant_detail, const string& email, const string& memo){
+    require_auth(merchant);
+    check(email.size() < 64, "email size too large: " + to_string(email.size()) );
+    check(memo.size() < max_memo_size, "memo size too large: " + to_string(memo.size()) );
+
+    merchant_t merchant_raw(merchant);
+    check(_dbc.get(merchant_raw), "merchant not found");
+
+    if ( merchant_name.length() > 0 )   merchant_raw.merchant_name = merchant_name;
+    if ( merchant_detail.length() > 0 ) merchant_raw.merchant_detail = merchant_detail;
+    if ( email.length() > 0 )           merchant_raw.email = email;
+    if ( memo.length() > 0 )            merchant_raw.memo = memo;
+    merchant_raw.updated_at = time_point_sec(current_time_point());
+
+    _dbc.set( merchant_raw, get_self() );
+}
+
+
 void otcbook::enbmerchant(const name& owner, bool is_enabled) {
     require_auth( _conf().managers.at(otc::manager_type::admin) );
 
@@ -519,7 +537,7 @@ void otcbook::canceldeal(const name& account, const uint8_t& account_type, const
 
     check( (uint8_t)order.status != (uint8_t)order_status_t::CLOSED, "order already closed" );
 
-    deals.modify( *deal_itr, account, [&]( auto& row ) {
+    deals.modify( *deal_itr, _self, [&]( auto& row ) {
             row.arbit_status = (uint8_t)arbit_status_t::UNARBITTED;
             row.status = (uint8_t)deal_status_t::CANCELLED;
             row.closed_at = time_point_sec(current_time_point());
@@ -535,10 +553,7 @@ void otcbook::canceldeal(const name& account, const uint8_t& account_type, const
     });
 }
 
-
-void otcbook::processdeal(const name& account, const uint8_t& account_type, const uint64_t& deal_id, uint8_t action_type) {
-    require_auth( account );
-
+deal_t otcbook::_process(const name& account, const uint8_t& account_type, const uint64_t& deal_id, uint8_t action_type) {
     deal_t::idx_t deals(_self, _self.value);
     auto deal_itr = deals.find(deal_id);
     check( deal_itr != deals.end(), "deal not found: " + to_string(deal_id) );
@@ -609,7 +624,7 @@ void otcbook::processdeal(const name& account, const uint8_t& account_type, cons
             "can not process deal action:" + to_string((uint8_t)action_type)
              + " by arbit status: " + to_string((uint8_t)arbit_status) );
 
-    deals.modify( *deal_itr, account, [&]( auto& row ) {
+    deals.modify( *deal_itr, _self, [&]( auto& row ) {
         if (next_status != deal_status_t::NONE) {
             row.status = (uint8_t)next_status;
             row.updated_at = time_point_sec(current_time_point());
@@ -621,6 +636,12 @@ void otcbook::processdeal(const name& account, const uint8_t& account_type, cons
             row.merchant_paid_at = time_point_sec(current_time_point());
         }
     });
+    return *deal_itr;
+}
+
+void otcbook::processdeal(const name& account, const uint8_t& account_type, const uint64_t& deal_id, uint8_t action_type) {
+    require_auth( account );
+    _process(account, account_type, deal_id, action_type);
 }
 
 
@@ -660,7 +681,7 @@ void otcbook::startarbit(const name& account, const uint8_t& account_type, const
     set<deal_status_t> can_arbit_status = {deal_status_t::MAKER_ACCEPTED, deal_status_t::TAKER_SENT, deal_status_t::MAKER_RECV_AND_SENT };
     check( can_arbit_status.count(status) != 0, "status illegal: " + to_string((uint8_t)status) );
 
-    deals.modify( *deal_itr, account, [&]( auto& row ) {
+    deals.modify( *deal_itr, _self, [&]( auto& row ) {
         row.arbit_status = (uint8_t)arbit_status_t::ARBITING;
         row.arbiter = arbiter;
         row.updated_at = time_point_sec(current_time_point());
@@ -693,7 +714,7 @@ void otcbook::closearbit(const name& account, const uint64_t& deal_id, const uin
         deal_status =  (uint8_t)deal_status_t::CANCELLED;
     }
 
-    deals.modify( *deal_itr, account, [&]( auto& row ) {
+    deals.modify( *deal_itr, _self, [&]( auto& row ) {
             row.arbit_status = uint8_t(arbit_result == 0 ? arbit_status_t::CLOSENOFINE : arbit_status_t::CLOSEWITHFINE );
             row.status = (uint8_t)deal_status_t::CLOSED;
             row.closed_at = time_point_sec(current_time_point());
@@ -761,7 +782,7 @@ void otcbook::cancelarbit( const uint8_t& account_type, const name& account, con
     }
 
     auto now = time_point_sec(current_time_point());
-    deals.modify( *deal_itr, account, [&]( auto& row ) {
+    deals.modify( *deal_itr, _self, [&]( auto& row ) {
         row.arbit_status = (uint8_t)arbit_status_t::UNARBITTED;
         row.updated_at = now;
     });
@@ -782,7 +803,7 @@ void otcbook::resetdeal(const name& account, const uint64_t& deal_id){
     CHECK( status != deal_status_t::CREATED, "deal no need to reverse" );
 
     auto now = time_point_sec(current_time_point());
-    deals.modify( *deal_itr, account, [&]( auto& row ) {
+    deals.modify( *deal_itr, _self, [&]( auto& row ) {
         row.status = (uint8_t)deal_status_t::CREATED;
         row.updated_at = time_point_sec(current_time_point());
     });
@@ -810,16 +831,38 @@ void otcbook::withdraw(const name& owner, asset quantity){
     TRANSFER( _conf().stake_assets_contract.at(quantity.symbol), owner, quantity, "merchant withdraw" )
 }
 
+
+
+void otcbook::ontransfer(name from, name to, asset quantity, string memo){
+    if(_self == from || to != _self) return;
+    check( _conf().stake_assets_contract.count(quantity.symbol), "Token Symbol not allowed" );
+    check( _conf().stake_assets_contract.at(quantity.symbol) == get_first_receiver(), "Token Symbol not allowed" );
+  
+    if(memo.empty()){
+        _deposit(from, to, quantity, memo);
+    }
+    else {
+        vector<string_view> memo_params = split(memo, ":");
+        if (memo_params[0] == "process" && memo_params.size() == 2) {
+            uint8_t account_type = to_uint8(memo_params[1], "account_type id param error");
+            uint64_t deal_id = to_uint64(memo_params[2], "deal id param error");
+            uint8_t action_type = to_uint64(memo_params[3], "action_type id param error");
+            auto deal = _process(from, account_type, deal_id, action_type);
+            CHECKC( deal.deal_quantity == quantity, err::SYMBOL_MISMATCH, "quantity must eqault to deal quantity" )
+            TRANSFER( get_first_receiver(), from == deal.order_maker? deal.order_taker : deal.order_maker, 
+                quantity, "metabalance deal: " + to_string(deal.id) );
+        }
+        else {
+            CHECKC( false, err::PARAM_ERROR, "unsupport transfer params" )
+        }
+    }
+}
 /*************** Begin of eosio.token transfer trigger function ******************/
 /**
  * This happens when a merchant decides to open sell orders
  */
-void otcbook::deposit(name from, name to, asset quantity, string memo) {
-    if(_self == from || to != _self) return;
-
-    check( _conf().stake_assets_contract.count(quantity.symbol), "Token Symbol not allowed" );
-    check( _conf().stake_assets_contract.at(quantity.symbol) == get_first_receiver(), "Token Symbol not allowed" );
-    
+void otcbook::_deposit(name from, name to, asset quantity, string memo) {
+  
     merchant_t merchant(from);
     check(_dbc.get( merchant ),"merchant is not set, from:" + from.to_string()+ ",to:" + to.to_string());
     check((merchant_state_t)merchant.state == merchant_state_t::ENABLED,
