@@ -389,7 +389,7 @@ deal_t otcbook::_closedeal(const name& account, const uint8_t& account_type, con
         check( deal_itr->order_maker == account, "merchant account mismatched");
         check( (uint8_t)status == (uint8_t)deal_status_t::MAKER_RECV_AND_SENT || 
             (uint8_t)status == (uint8_t)deal_status_t::TAKER_SENT, "can only close deal in status taker_sent or maker_recv");
-        check( !by_transfer && (merchant_paid_at + seconds(_conf().payed_timeout) < current_time_point()), "deal is not expired.");
+        check( by_transfer || (merchant_paid_at + seconds(_conf().payed_timeout) < current_time_point()), "deal is not expired.");
         break;
     default:
         check(false, "account type not supported: " + to_string(account_type));
