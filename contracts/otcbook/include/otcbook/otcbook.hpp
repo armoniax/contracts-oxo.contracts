@@ -263,7 +263,10 @@ public:
      *          empty memo: for merchant deposite
      *          process:{account_type}:{deal_id}:{action_type}
      *              auto process deal for transfer ARC token
-     *              quantity will transfer to account
+     *              asset will transfer to account
+     *          close:{account_type}:{deal_id}
+     *              auto close deal for transfer ARC token
+     *              asset will transfer to account
      * @note require from auth
      */
     [[eosio::on_notify("*::transfer")]]
