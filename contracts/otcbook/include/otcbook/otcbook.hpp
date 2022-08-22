@@ -153,7 +153,6 @@ public:
     [[eosio::action]]
     void resumeorder(const name& owner, const name& order_side, const uint64_t& order_id);
 
-
     /**
      * close order by merchant
      * all of the related deals must be closed
@@ -315,6 +314,8 @@ private:
     void _deposit(name from, name to, asset quantity, string memo);
 
     deal_t _process(const name& account, const uint8_t& account_type, const uint64_t& deal_id, uint8_t action);
+
+    deal_t _closedeal(const name& account, const uint8_t& account_type, const uint64_t& deal_id, const string& close_msg, const bool& by_transfer);
 
     asset _calc_order_stakes(const asset &quantity);
 

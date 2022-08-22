@@ -360,6 +360,11 @@ void otcbook::opendeal( const name& taker, const name& order_side, const uint64_
 void otcbook::closedeal(const name& account, const uint8_t& account_type, const uint64_t& deal_id, const string& close_msg) {
     require_auth( account );
 
+    _closedeal(account, account_type, deal_id, close_msg, false);
+}
+
+
+deal_t otcbook::_closedeal(const name& account, const uint8_t& account_type, const uint64_t& deal_id, const string& close_msg, const bool& by_transfer) {
     auto conf = _conf();
     deal_t::idx_t deals(_self, _self.value);
     auto deal_itr = deals.find(deal_id);
@@ -383,7 +388,7 @@ void otcbook::closedeal(const name& account, const uint8_t& account_type, const 
     case account_type_t::MERCHANT:
         check( deal_itr->order_maker == account, "merchant account mismatched");
         check( (uint8_t)status == (uint8_t)deal_status_t::MAKER_RECV_AND_SENT, "deal already cancelled: " + to_string(deal_id) );
-        check( merchant_paid_at + seconds(_conf().payed_timeout) < current_time_point(), "deal is not expired.");
+        check( !by_transfer && (merchant_paid_at + seconds(_conf().payed_timeout) < current_time_point()), "deal is not expired.");
         break;
     default:
         check(false, "account type not supported: " + to_string(account_type));
@@ -407,7 +412,7 @@ void otcbook::closedeal(const name& account, const uint8_t& account_type, const 
     auto deal_fee= deal_itr->deal_fee;
 
     if ((account_type_t) account_type == account_type_t::MERCHANT || (account_type_t) account_type == account_type_t::USER) {
-        check( deal_status_t::MAKER_RECV_AND_SENT == status,
+        check( deal_status_t::MAKER_RECV_AND_SENT == status || (deal_status_t::TAKER_SENT == status && by_transfer),
             "can not process deal action:" + to_string((uint8_t)action)
                 + " at status: " + to_string((uint8_t)status) );
     }
@@ -473,6 +478,7 @@ void otcbook::closedeal(const name& account, const uint8_t& account_type, const 
             ALLOT(  farm_arc, conf.farm_lease_id, deal_itr->order_taker,asset(value, APLINK_SYMBOL), 
                     "metabalance farm allot: "+to_string(deal_id) );
     }
+    return *deal_itr;
 }
 
 void otcbook::canceldeal(const name& account, const uint8_t& account_type, const uint64_t& deal_id, bool is_taker_black) {
@@ -848,6 +854,16 @@ void otcbook::ontransfer(name from, name to, asset quantity, string memo){
             uint64_t deal_id = to_uint64(memo_params[2], "deal id param error");
             uint8_t action_type = to_uint64(memo_params[3], "action_type id param error");
             deal_t deal = _process(from, account_type, deal_id, action_type);
+            auto stake_coin_type = _conf().coin_as_stake.at(deal.deal_quantity.symbol);
+            auto stake_amount = multiply_decimal64( deal.deal_quantity.amount, get_precision(stake_coin_type), get_precision(deal.deal_quantity.symbol));
+            CHECKC( asset(stake_amount, stake_coin_type) == quantity, err::SYMBOL_MISMATCH, "quantity must eqault to deal quantity" )
+            TRANSFER( get_first_receiver(), from == deal.order_maker? deal.order_taker : deal.order_maker, 
+                quantity, "metabalance deal: " + to_string(deal.id) );
+        }
+        else if (memo_params[0] == "close" && memo_params.size() == 3) {
+            uint8_t account_type = to_uint8(memo_params[1], "account_type id param error");
+            uint64_t deal_id = to_uint64(memo_params[2], "deal id param error");
+            deal_t deal = _closedeal(from, account_type, deal_id, "auto close by transfer", true);
             auto stake_coin_type = _conf().coin_as_stake.at(deal.deal_quantity.symbol);
             auto stake_amount = multiply_decimal64( deal.deal_quantity.amount, get_precision(stake_coin_type), get_precision(deal.deal_quantity.symbol));
             CHECKC( asset(stake_amount, stake_coin_type) == quantity, err::SYMBOL_MISMATCH, "quantity must eqault to deal quantity" )
