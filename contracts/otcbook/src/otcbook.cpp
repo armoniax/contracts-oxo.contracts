@@ -843,12 +843,14 @@ void otcbook::ontransfer(name from, name to, asset quantity, string memo){
     }
     else {
         vector<string_view> memo_params = split(memo, ":");
-        if (memo_params[0] == "process" && memo_params.size() == 2) {
+        if (memo_params[0] == "process" && memo_params.size() == 4) {
             uint8_t account_type = to_uint8(memo_params[1], "account_type id param error");
             uint64_t deal_id = to_uint64(memo_params[2], "deal id param error");
             uint8_t action_type = to_uint64(memo_params[3], "action_type id param error");
-            auto deal = _process(from, account_type, deal_id, action_type);
-            CHECKC( deal.deal_quantity == quantity, err::SYMBOL_MISMATCH, "quantity must eqault to deal quantity" )
+            deal_t deal = _process(from, account_type, deal_id, action_type);
+            auto stake_coin_type = _conf().coin_as_stake.at(deal.deal_quantity.symbol);
+            auto stake_amount = multiply_decimal64( deal.deal_quantity.amount, get_precision(stake_coin_type), get_precision(deal.deal_quantity.symbol));
+            CHECKC( asset(stake_amount, stake_coin_type) == quantity, err::SYMBOL_MISMATCH, "quantity must eqault to deal quantity" )
             TRANSFER( get_first_receiver(), from == deal.order_maker? deal.order_taker : deal.order_maker, 
                 quantity, "metabalance deal: " + to_string(deal.id) );
         }
