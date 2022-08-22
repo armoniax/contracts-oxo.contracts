@@ -426,7 +426,7 @@ deal_t otcbook::_closedeal(const name& account, const uint8_t& account_type, con
         row.updated_at              = now;
     });
 
-    deals.modify( *deal_itr, account, [&]( auto& row ) {
+    deals.modify( *deal_itr, _self, [&]( auto& row ) {
         row.status                  = (uint8_t)deal_status_t::CLOSED;
         row.closed_at               = now;
         row.updated_at              = now;
