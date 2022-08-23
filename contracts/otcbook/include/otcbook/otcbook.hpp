@@ -95,6 +95,20 @@ public:
     [[eosio::action]]
     void setmerchant(const name& owner, const name& merchant, const string &merchant_name, const string &merchant_detail, const string& email, const string& memo);
 
+   /**
+     * set merchant
+     * @param merchant account name
+     * @param merchant_name merchant's name
+     * @param merchant_detail merchant's detail
+     * @param pay_methods pay methods
+     * @param email email of merchant
+     * @param memo memo of merchant
+     * @note require merchant auth
+     */
+    [[eosio::action]]
+    void uptmerchant(const name& merchant, const string &merchant_name, const string &merchant_detail, const string& email, const string& memo);
+
+
     /**
      * enable merchant by admin
      * @param owner merchant account name
@@ -138,7 +152,6 @@ public:
      */
     [[eosio::action]]
     void resumeorder(const name& owner, const name& order_side, const uint64_t& order_id);
-
 
     /**
      * close order by merchant
@@ -239,6 +252,7 @@ public:
      */
     [[eosio::action]]
     void cancelarbit( const uint8_t& account_type, const name& account, const uint64_t& deal_id);
+    
     /**
      * action trigger by transfer()
      * transfer token to this contract will trigger this action
@@ -247,10 +261,18 @@ public:
      * @param to must be this contract name
      * @param quantity transfer quantity
      * @param memo memo
+     *          empty memo: for merchant deposite
+     *          process:{account_type}:{deal_id}:{action_type}
+     *              auto process deal for transfer ARC token
+     *              asset will transfer to account
+     *          close:{account_type}:{deal_id}
+     *              auto close deal for transfer ARC token
+     *              asset will transfer to account
      * @note require from auth
      */
     [[eosio::on_notify("*::transfer")]]
-    void deposit(name from, name to, asset quantity, string memo);
+    void ontransfer(name from, name to, asset quantity, string memo);
+
 
     /**
      * withdraw
@@ -293,6 +315,12 @@ public:
     using dealnotify_action = eosio::action_wrapper<"dealnotify"_n, &otcbook::dealnotify>;
 
 private:
+    void _deposit(name from, name to, asset quantity, string memo);
+
+    deal_t _process(const name& account, const uint8_t& account_type, const uint64_t& deal_id, uint8_t action);
+
+    deal_t _closedeal(const name& account, const uint8_t& account_type, const uint64_t& deal_id, const string& close_msg, const bool& by_transfer);
+
     asset _calc_order_stakes(const asset &quantity);
 
     asset _calc_deal_fee(const asset &quantity);

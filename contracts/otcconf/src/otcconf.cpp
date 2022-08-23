@@ -101,6 +101,32 @@ void otcconf::setmanager(const name& type, const name& account){
     _gstate.managers[type] = account;
 }
 
+void otcconf::addcoin(const bool& is_buy, const symbol& coin, const symbol& stake_coin){
+    require_auth(_gstate.managers.at(manager_type::admin));
+    CHECKC( _gstate.stake_assets_contract.count(stake_coin), err::SYMBOL_MISMATCH, "stake coin not supported" )
+    if(is_buy){
+        CHECKC( !_gstate.buy_coins_conf.count(coin), err::RECORD_EXISTING, "coin already in buy coin list" )
+        _gstate.buy_coins_conf.insert(coin);
+    }
+    else {
+        CHECKC( !_gstate.sell_coins_conf.count(coin), err::RECORD_EXISTING, "coin already in sell coin list" ) 
+        _gstate.sell_coins_conf.insert(coin);
+    }
+    _gstate.coin_as_stake[coin] = stake_coin;
+}
+
+void otcconf::deletecoin(const bool& is_buy, const symbol& coin){
+    require_auth(_gstate.managers.at(manager_type::admin));
+    if(is_buy){
+        CHECKC( _gstate.buy_coins_conf.count(coin), err::RECORD_NOT_FOUND, "coin not in buy coin list" )
+        _gstate.buy_coins_conf.erase(coin);
+    }
+    else {
+        CHECKC( _gstate.sell_coins_conf.count(coin), err::RECORD_NOT_FOUND, "coin not in sell coin list" ) 
+        _gstate.sell_coins_conf.erase(coin);
+    }
+}
+
 void otcconf::setfeepct(const uint64_t& feepct){
     require_auth(_gstate.managers.at(manager_type::admin));
     CHECKC(feepct >= 0, err::NOT_POSITIVE, "unsupport negtive fee");

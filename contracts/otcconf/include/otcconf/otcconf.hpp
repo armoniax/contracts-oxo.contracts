@@ -67,6 +67,12 @@ public:
     void setstatus(const uint8_t& status);
 
     [[eosio::action]]
+    void addcoin(const bool& is_buy, const symbol& coin, const symbol& stake_coin);
+
+    [[eosio::action]]
+    void deletecoin(const bool& is_buy, const symbol& coin);
+
+    [[eosio::action]]
     void setmanager(const name& type, const name& account);
 
     [[eosio::action]]

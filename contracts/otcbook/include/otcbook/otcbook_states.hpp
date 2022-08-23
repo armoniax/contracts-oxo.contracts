@@ -29,7 +29,7 @@ static constexpr symbol   APLINK_SYMBOL              = SYMBOL("APL", 4);
 
 static constexpr uint64_t percent_boost     = 10000;
 static constexpr uint64_t order_stake_pct   = 10000; // 100%
-static constexpr uint64_t max_memo_size     = 1024;
+static constexpr uint64_t max_memo_size     = 256;
 
 static constexpr uint64_t seconds_per_day                   = 24 * 3600;
 static constexpr uint64_t seconds_per_year                  = 365 * seconds_per_day;
