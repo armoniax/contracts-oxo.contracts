@@ -652,8 +652,7 @@ void otcbook::processdeal(const name& account, const uint8_t& account_type, cons
 }
 
 
-void otcbook::startarbit(const name& account, const uint8_t& account_type, const uint64_t& deal_id,
-    const name& arbiter) {
+void otcbook::startarbit(const name& account, const uint8_t& account_type, const uint64_t& deal_id, const name& arbiter) {
     require_auth( account );
 
     deal_t::idx_t deals(_self, _self.value);
@@ -872,7 +871,7 @@ void otcbook::ontransfer(name from, name to, asset quantity, string memo){
                 quantity, "metabalance deal: " + to_string(deal.id) );
         }
         else {
-            CHECKC( false, err::PARAM_ERROR, "unsupport transfer params" )
+            _deposit(from, to, quantity, memo);
         }
     }
 }
