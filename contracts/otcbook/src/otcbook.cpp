@@ -839,7 +839,7 @@ void otcbook::withdraw(const name& owner, asset quantity){
         break;
     }
     check((time_point_sec(current_time_point())-merchant.updated_at) > limit_seconds,
-        "Can only withdraw after 3 days from fund changed");
+        "Can only withdraw after " + to_string(int(limit_seconds.to_seconds()/seconds_per_day)) + " days from fund changed");
 
     _sub_balance(merchant, quantity, "merchant withdraw");
 
