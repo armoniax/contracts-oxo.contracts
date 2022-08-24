@@ -82,7 +82,7 @@ void otcbook::setmerchant(const name& owner, const name& merchant, const string 
 
     merchant_t merchant_raw(merchant);
     if (!_dbc.get(merchant_raw)) { // first register, init
-        merchant_raw.state = (isAdmin) ? (uint8_t)merchant_state_t::ENABLED : (uint8_t)merchant_state_t::REGISTERED;
+        merchant_raw.state = (isAdmin) ? (uint8_t)merchant_state_t::BLUESHILED : (uint8_t)merchant_state_t::REGISTERED;
     }
     if ( merchant_name.length() > 0 )   merchant_raw.merchant_name = merchant_name;
     if ( merchant_detail.length() > 0 ) merchant_raw.merchant_detail = merchant_detail;
@@ -111,20 +111,12 @@ void otcbook::uptmerchant(const name& merchant, const string &merchant_name, con
 }
 
 
-void otcbook::enbmerchant(const name& owner, bool is_enabled) {
+void otcbook::enbmerchant(const name& owner, const uint8_t& state) {
     require_auth( _conf().managers.at(otc::manager_type::admin) );
-
+    
     merchant_t merchant(owner);
     check( _dbc.get(merchant), "merchant not found: " + owner.to_string() );
-    if (is_enabled) {
-        check((merchant_state_t)merchant.state != merchant_state_t::ENABLED,
-            "merchant has been enabled");
-        merchant.state = (uint8_t)merchant_state_t::ENABLED;
-    } else {
-        check((merchant_state_t)merchant.state != merchant_state_t::DISABLED,
-            "merchant has been disabled");
-        merchant.state = (uint8_t)merchant_state_t::DISABLED;
-    }
+    merchant.state = state;
     _dbc.set( merchant , get_self());
 }
 
@@ -165,7 +157,7 @@ void otcbook::openorder(const name& owner, const name& order_side, const set<nam
 
     merchant_t merchant(owner);
     check( _dbc.get(merchant), "merchant not found: " + owner.to_string() );
-    check((merchant_state_t)merchant.state == merchant_state_t::ENABLED,
+    check((merchant_state_t)merchant.state >= merchant_state_t::GENERAL,
         "merchant not enabled");
 
     auto stake_frozen = _calc_order_stakes(va_quantity); // TODO: process 70% used-rate of stake
@@ -826,10 +818,27 @@ void otcbook::withdraw(const name& owner, asset quantity){
 
     merchant_t merchant(owner);
     check( _dbc.get(merchant), "merchant not found: " + owner.to_string() );
-    check((merchant_state_t)merchant.state == merchant_state_t::ENABLED,
+    auto state = (merchant_state_t)merchant.state;
+    check(state >= merchant_state_t::GENERAL,
     "merchant not enabled");
 
-    check((time_point_sec(current_time_point())-merchant.updated_at) > seconds(default_withdraw_limit_second),
+    auto limit_seconds = seconds(general_withdraw_limit_second);
+    switch (state)
+    {
+    case merchant_state_t::GLODEN:
+        limit_seconds = seconds(golden_withdraw_limit_second);
+        break;
+    
+    case merchant_state_t::DIAMOND:
+        limit_seconds = seconds(diamond_withdraw_limit_second);
+        break;
+    case merchant_state_t::BLUESHILED:
+        limit_seconds = seconds(blueshiled_withdraw_limit_second);
+        break;
+    default:
+        break;
+    }
+    check((time_point_sec(current_time_point())-merchant.updated_at) > limit_seconds,
         "Can only withdraw after 3 days from fund changed");
 
     _sub_balance(merchant, quantity, "merchant withdraw");
@@ -887,7 +896,7 @@ void otcbook::_deposit(name from, name to, asset quantity, string memo) {
                                                 + _conf().stake_assets_contract.at(quantity.symbol).to_string() );
     merchant_t merchant(from);
     check(_dbc.get( merchant ),"merchant is not set, from:" + from.to_string()+ ",to:" + to.to_string());
-    check((merchant_state_t)merchant.state == merchant_state_t::ENABLED,
+    check((merchant_state_t)merchant.state >= merchant_state_t::GENERAL,
         "merchant not enabled");
     _add_balance(merchant, quantity, "merchant deposit");
 }

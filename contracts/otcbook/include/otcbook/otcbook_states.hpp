@@ -43,7 +43,10 @@ static constexpr uint64_t default_blacklist_duration_second = DEFAULT_BLACKLIST_
 #endif//DEFAULT_BLACKLIST_DURATION_SECOND_FOR_TEST
 
 #ifndef DEFAULT_WITHDRAW_LIMIT_SECOND_FOR_TEST
-static constexpr uint64_t default_withdraw_limit_second = 3 * seconds_per_day;    // 3 days
+static constexpr uint64_t general_withdraw_limit_second = 3 * seconds_per_day;
+static constexpr uint64_t golden_withdraw_limit_second = 2 * seconds_per_day;
+static constexpr uint64_t diamond_withdraw_limit_second = 1 * seconds_per_day;
+static constexpr uint64_t blueshiled_withdraw_limit_second = 0 * seconds_per_day;
 #else
 #warning "DEFAULT_WITHDRAW_LIMIT_SECOND_FOR_TEST should only be used for test
 static constexpr uint64_t default_withdraw_limit_second = DEFAULT_WITHDRAW_LIMIT_SECOND_FOR_TEST;
@@ -110,7 +113,11 @@ enum class merchant_state_t: uint8_t {
     NONE        = 0,
     REGISTERED  = 1,
     DISABLED    = 2,
-    ENABLED     = 3
+    // ENABLED     = 3,
+    GENERAL  = 11,
+    GLODEN   = 12,
+    DIAMOND  = 13,
+    BLUESHILED  = 14
 };
 
 enum class arbit_status_t: uint8_t {
