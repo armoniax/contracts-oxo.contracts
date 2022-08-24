@@ -112,11 +112,11 @@ public:
     /**
      * enable merchant by admin
      * @param owner merchant account name
-     * @param is_enabled enable(true) or disable(false) merchant
+     * @param state enable(11-14) or disable(2) merchant
      * @note require admin auth
      */
     [[eosio::action]]
-    void enbmerchant(const name& owner, bool is_enabled);
+    void enbmerchant(const name& owner, const uint8_t& state);
 
     /**
      * open order by merchant
