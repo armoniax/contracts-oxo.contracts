@@ -69,22 +69,20 @@ void otcbook::setconf(const name &conf_contract) {
     _conf(true);
 }
 
-void otcbook::setmerchant(const name& owner, const name& merchant, const string &merchant_name, const string &merchant_detail, const string& email, const string& memo) {
+void otcbook::setmerchant(const name& merchant, const uint8_t& status, const string &merchant_name, const string &merchant_detail, const string& email, const string& memo) {
     name admin = _conf().managers.at(otc::manager_type::admin);
     require_auth(admin);
-    auto isAdmin = (owner == admin);
-    if (!isAdmin) {
-        check(owner == merchant, "non-admin not allowed to set merchant" );
-    }
+
     check(is_account(merchant), "account not activated");
     check(merchant_name.size() < 20, "merchant_name size too large: " + to_string(merchant_name.size()) );
     check(email.size() < 64, "email size too large: " + to_string(email.size()) );
     check(memo.size() < max_memo_size, "memo size too large: " + to_string(memo.size()) );
 
     merchant_t merchant_raw(merchant);
-    if (!_dbc.get(merchant_raw)) { // first register, init
-        merchant_raw.state = isAdmin ? (uint8_t)merchant_status_t::BLUESHILED : (uint8_t)merchant_status_t::REGISTERED;
-    }
+    _dbc.get(merchant_raw);
+
+    merchant_raw.state = status;
+    
     if ( merchant_name.length() > 0 )   merchant_raw.merchant_name = merchant_name;
     if ( merchant_detail.length() > 0 ) merchant_raw.merchant_detail = merchant_detail;
     if ( email.length() > 0 )           merchant_raw.email = email;
@@ -877,7 +875,7 @@ void otcbook::ontransfer(name from, name to, asset quantity, string memo){
             merchant_t merchant(from);
             check(!_dbc.get( merchant ),"merchant is existed");
 
-            merchant.state = (uint8_t)merchant_state_t::REGISTERED;
+            merchant.state = (uint8_t)merchant_status_t::REGISTERED;
             _add_balance(merchant, quantity, "merchant deposit");
         }
         else if (memo_params[0] == "process" && memo_params.size() == 4) {

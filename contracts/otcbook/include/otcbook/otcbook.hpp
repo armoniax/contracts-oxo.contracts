@@ -83,7 +83,6 @@ public:
 
     /**
      * set merchant
-     * @param owner account name
      * @param merchant account name
      * @param merchant_name merchant's name
      * @param merchant_detail merchant's detail
@@ -93,7 +92,7 @@ public:
      * @note require owner auth
      */
     [[eosio::action]]
-    void setmerchant(const name& owner, const name& merchant, const string &merchant_name, const string &merchant_detail, const string& email, const string& memo);
+    void setmerchant(const name& merchant, const uint8_t& status, const string &merchant_name, const string &merchant_detail, const string& email, const string& memo);
 
    /**
      * set merchant
