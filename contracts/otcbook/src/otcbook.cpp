@@ -77,6 +77,7 @@ void otcbook::setmerchant(const name& owner, const name& merchant, const string 
         check(owner == merchant, "non-admin not allowed to set merchant" );
     }
     check(is_account(merchant), "account not activated");
+    check(merchant_name.size() < 20, "merchant_name size too large: " + to_string(merchant_name.size()) );
     check(email.size() < 64, "email size too large: " + to_string(email.size()) );
     check(memo.size() < max_memo_size, "memo size too large: " + to_string(memo.size()) );
 
@@ -96,6 +97,7 @@ void otcbook::setmerchant(const name& owner, const name& merchant, const string 
 void otcbook::uptmerchant(const name& merchant, const string &merchant_name, const string &merchant_detail, const string& email, const string& memo){
     require_auth(merchant);
     check(email.size() < 64, "email size too large: " + to_string(email.size()) );
+    check(merchant_name.size() < 20, "merchant_name size too large: " + to_string(merchant_name.size()) );
     check(memo.size() < max_memo_size, "memo size too large: " + to_string(memo.size()) );
 
     merchant_t merchant_raw(merchant);
@@ -412,11 +414,16 @@ deal_t otcbook::_closedeal(const name& account, const uint8_t& account_type, con
 
     auto now                        = current_time_point();
     auto stake_quantity             = _calc_order_stakes(deal_quantity);
+
     order_wrapper_ptr->modify(_self, [&]( auto& row ) {
         row.stake_frozen            -= stake_quantity;
         row.va_frozen_quantity      -= deal_quantity;
         row.va_fulfilled_quantity   += deal_quantity;
         row.updated_at              = now;
+        if(row.stake_frozen.amount == 0 && row.va_frozen_quantity.amount == 0){
+            row.status = (uint8_t)order_status_t::CLOSED;
+            row.closed_at = now;
+        }
     });
 
     deals.modify( *deal_itr, _self, [&]( auto& row ) {
@@ -507,7 +514,7 @@ void otcbook::canceldeal(const name& account, const uint8_t& account_type, const
                 auto merchant_accepted_at = deal_itr->merchant_accepted_at;
                 check(merchant_accepted_at + seconds(_conf().accepted_timeout) < now, "deal is not expired.");
                 if (is_taker_black)
-                    _set_blacklist(deal_itr->order_taker, default_blacklist_duration_second, account);
+                    _set_blacklist(deal_itr->order_taker, default_blacklist_duration_second, get_self());
                 break;
             }
             default:
@@ -857,8 +864,22 @@ void otcbook::ontransfer(name from, name to, asset quantity, string memo){
         _deposit(from, to, quantity, memo);
     }
     else {
-        vector<string_view> memo_params = split(memo, ":");
-        if (memo_params[0] == "process" && memo_params.size() == 4) {
+        vector<string_view> memo_params = split(memo, ":"); 
+        if (memo_params[0] == "apply" && memo_params.size() == 4) {
+            string merchant_name = string(memo_params[1]);
+            string merchant_detail = string(memo_params[2]);
+            string email = string(memo_params[3]);
+
+            check(merchant_name.size() < 20, "merchant_name size too large: " + to_string(merchant_name.size()) );
+            check(email.size() < 64, "email size too large: " + to_string(email.size()) );
+
+            merchant_t merchant(from);
+            check(!_dbc.get( merchant ),"merchant is existed");
+
+            merchant.state = (uint8_t)merchant_state_t::REGISTERED;
+            _add_balance(merchant, quantity, "merchant deposit");
+        }
+        else if (memo_params[0] == "process" && memo_params.size() == 4) {
             uint8_t account_type = to_uint8(memo_params[1], "account_type id param error");
             uint64_t deal_id = to_uint64(memo_params[2], "deal id param error");
             uint8_t action_type = to_uint64(memo_params[3], "action_type id param error");
