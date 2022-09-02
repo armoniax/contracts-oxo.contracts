@@ -109,23 +109,23 @@ static const set<name> ORDER_SIDES = {
     BUY_SIDE, SELL_SIDE
 };
 
-enum class merchant_state_t: uint8_t {
-    NONE        = 0,
-    REGISTERED  = 1,
-    DISABLED    = 2,
+enum class merchant_status_t: uint8_t {
+    NONE            = 0,
+    REGISTERED      = 1,
+    DISABLED        = 2,
     // ENABLED     = 3,
-    GENERAL  = 11,
-    GLODEN   = 12,
-    DIAMOND  = 13,
-    BLUESHILED  = 14
+    BASIC           = 11,
+    GOLD            = 12,
+    DIAMOND         = 13,
+    BLUESHILED      = 14
 };
 
 enum class arbit_status_t: uint8_t {
-    NONE        =0,
-    UNARBITTED = 1,
-    ARBITING   = 2,
-    CLOSENOFINE = 3,
-    CLOSEWITHFINE = 4
+    NONE                = 0,
+    UNARBITTED          = 1,
+    ARBITING            = 2,
+    CLOSENOFINE         = 3,
+    CLOSEWITHFINE       = 4
 };
 
 struct asset_stake{
@@ -139,13 +139,12 @@ struct OTCBOOK_TBL merchant_t {
     string merchant_detail;         // merchant's detail
     string email;                   // email
     string memo;                    // memo
-    uint8_t state;                 // status, merchant_state_t
+    uint8_t state;                  // status, merchant_status_t
     map<symbol, asset_stake> assets;
     time_point_sec updated_at;
 
     merchant_t() {}
     merchant_t(const name& o): owner(o) {}
-
 
     uint64_t primary_key()const { return owner.value; }
     uint64_t scope()const { return 0; }
