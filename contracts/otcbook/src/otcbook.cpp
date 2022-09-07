@@ -344,7 +344,7 @@ void otcbook::opendeal( const name& taker, const name& order_side, const uint64_
     });
 
     DEAL_NOTIFY(order_maker, conf.app_info, 
-        "deal.new, meta.taker "+ taker.to_string() + ", meta.quantity " + deal_quantity.to_string());
+        "New deal notification: "+ taker.to_string() + " - " + deal_quantity.to_string());
 }
 
 /**
@@ -574,12 +574,12 @@ deal_t otcbook::_process(const name& account, const uint8_t& account_type, const
     case account_type_t::MERCHANT:
         check( deal_itr->order_maker == account, "maker account mismatched");
         DEAL_NOTIFY(deal_itr->order_taker, _conf().app_info, 
-            "deal.process, meta.maker "+ account.to_string() + "meta.processed meta.deal " + to_string(deal_id) + " deal.status"+to_string(action_type));
+            "Deal" + to_string(deal_id) +" status changed, merchant "+ account.to_string() + " changed step to "+to_string(action_type));
         break;
     case account_type_t::USER:
         check( deal_itr->order_taker == account, "taker account mismatched");
         DEAL_NOTIFY(deal_itr->order_maker, _conf().app_info, 
-            "deal.process, meta.taker "+ account.to_string() + "meta.processed meta.deal " + to_string(deal_id) + " deal.status"+to_string(action_type));
+            "Deal" + to_string(deal_id) +" status changed, user " + account.to_string() + " changed step to "+to_string(action_type));
         break;
     case account_type_t::ARBITER:
         check( deal_itr->arbiter == account, "arbiter account mismatched");
@@ -825,7 +825,7 @@ void otcbook::withdraw(const name& owner, asset quantity){
     merchant_t merchant(owner);
     check( _dbc.get(merchant), "merchant not found: " + owner.to_string() );
     auto state = (merchant_status_t)merchant.state;
-    check(state >= merchant_status_t::BASIC,
+    check(state >= merchant_status_t::BASIC || state == merchant_status_t::DISABLED,
     "merchant not enabled");
 
     auto limit_seconds = seconds(general_withdraw_limit_second);
@@ -874,7 +874,7 @@ void otcbook::ontransfer(name from, name to, asset quantity, string memo){
 
             merchant_t merchant(from);
             check(!_dbc.get( merchant ),"merchant is existed");
-
+            
             merchant.state = (uint8_t)merchant_status_t::REGISTERED;
             _add_balance(merchant, quantity, "merchant deposit");
         }
