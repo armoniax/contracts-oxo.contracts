@@ -113,7 +113,8 @@ enum class merchant_status_t: uint8_t {
     NONE            = 0,
     REGISTERED      = 1,
     DISABLED        = 2,
-    // ENABLED     = 3,
+    FROZEN          = 3,
+    
     BASIC           = 11,
     GOLD            = 12,
     DIAMOND         = 13,
