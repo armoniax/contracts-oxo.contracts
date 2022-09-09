@@ -877,6 +877,7 @@ void otcbook::ontransfer(name from, name to, asset quantity, string memo){
             
             merchant.state = (uint8_t)merchant_status_t::REGISTERED;
             _add_balance(merchant, quantity, "merchant deposit");
+            _dbc.set(merchant, get_self());
         }
         else if (memo_params[0] == "process" && memo_params.size() == 4) {
             uint8_t account_type = to_uint8(memo_params[1], "account_type id param error");
