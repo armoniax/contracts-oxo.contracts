@@ -875,6 +875,9 @@ void otcbook::ontransfer(name from, name to, asset quantity, string memo){
             merchant_t merchant(from);
             check(!_dbc.get( merchant ),"merchant is existed");
             
+            merchant.merchant_name = merchant_name;
+            merchant.merchant_detail = merchant_detail;
+            merchant.email = email;
             merchant.state = (uint8_t)merchant_status_t::REGISTERED;
             _add_balance(merchant, quantity, "merchant deposit");
             _dbc.set(merchant, get_self());
