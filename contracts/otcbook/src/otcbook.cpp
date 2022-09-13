@@ -74,7 +74,7 @@ void otcbook::setmerchant(const name& merchant, const uint8_t& status, const str
     require_auth(admin);
 
     check(is_account(merchant), "account not activated");
-    check(merchant_name.size() < 20, "merchant_name size too large: " + to_string(merchant_name.size()) );
+    check(merchant_name.size() < 32, "merchant_name size too large: " + to_string(merchant_name.size()) );
     check(email.size() < 64, "email size too large: " + to_string(email.size()) );
     check(memo.size() < max_memo_size, "memo size too large: " + to_string(memo.size()) );
 
@@ -96,7 +96,7 @@ void otcbook::setmerchant(const name& merchant, const uint8_t& status, const str
 void otcbook::uptmerchant(const name& merchant, const string &merchant_name, const string &merchant_detail, const string& email, const string& memo){
     require_auth(merchant);
     check(email.size() < 64, "email size too large: " + to_string(email.size()) );
-    check(merchant_name.size() < 20, "merchant_name size too large: " + to_string(merchant_name.size()) );
+    check(merchant_name.size() < 32, "merchant_name size too large: " + to_string(merchant_name.size()) );
     check(memo.size() < max_memo_size, "memo size too large: " + to_string(memo.size()) );
 
     merchant_t merchant_raw(merchant);
