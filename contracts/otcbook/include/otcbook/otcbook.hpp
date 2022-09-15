@@ -252,6 +252,8 @@ public:
     [[eosio::action]]
     void cancelarbit( const uint8_t& account_type, const name& account, const uint64_t& deal_id);
     
+    ACTION setdearbiter(const uint64_t& deal_id, const name& new_arbiter);
+
     /**
      * action trigger by transfer()
      * transfer token to this contract will trigger this action

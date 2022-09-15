@@ -956,6 +956,18 @@ void otcbook::dealnotify(const name& account, const AppInfo_t &info, const strin
     require_recipient(account);
 }
 
+ACTION otcbook::setdearbiter(const uint64_t& deal_id, const name& new_arbiter) {
+    require_auth( _self );
+
+    deal_t::idx_t deals(_self, _self.value);
+    auto deal_itr = deals.find(deal_id);
+    check( deal_itr != deals.end(), "deal not found: " + to_string(deal_id) );
+
+    deals.modify(*deal_itr, _self, [&]( auto& row ) {
+        row.arbiter = new_arbiter;
+    });
+}
+
 void otcbook::_set_blacklist(const name& account, uint64_t duration_second, const name& payer) {
     blacklist_t::idx_t blacklist_tbl(_self, _self.value);
     auto blacklist_itr = blacklist_tbl.find(account.value);
