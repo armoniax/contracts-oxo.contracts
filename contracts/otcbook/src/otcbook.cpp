@@ -69,56 +69,27 @@ void otcbook::setconf(const name &conf_contract) {
     _conf(true);
 }
 
-void otcbook::setmerchant(const name& merchant, const uint8_t& status, const string &merchant_name, const string &merchant_detail, const string& email, const string& memo) {
-    name admin = _conf().managers.at(otc::manager_type::admin);
-    require_auth(admin);
+void otcbook::setmerchant( const merchant_info& mi, const bool& by_force ) {
+    CHECKC( has_auth(_conf().managers.at(otc::manager_type::admin)) || has_auth(mi.account), err::NO_AUTH, "neither admin nor merchant" )
 
-    check(is_account(merchant), "account not activated");
-    check(merchant_name.size() < 32, "merchant_name size too large: " + to_string(merchant_name.size()) );
-    check(email.size() < 64, "email size too large: " + to_string(email.size()) );
-    check(memo.size() < max_memo_size, "memo size too large: " + to_string(memo.size()) );
+    check(is_account(mi.account), "account invalid: " + mi.account.to_string());
+    check(mi.merchant_name.size() < 32, "merchant_name size too large: " + to_string(mi.merchant_name.size()) );
+    check(mi.email.size() < 64, "email size too large: " + to_string(mi.email.size()) );
+    check(mi.memo.size() < max_memo_size, "memo size too large: " + to_string(mi.memo.size()) );
 
-    merchant_t merchant_raw(merchant);
-    _dbc.get(merchant_raw);
+    auto merchant = merchant_t(mi.account);
+    auto found = _dbc.get(merchant);
+    CHECKC( by_force || !found, err::RECORD_EXISTING, "not by-force while merchant existing: " + mi.account.to_string() )
 
-    merchant_raw.state = status;
-    
-    if ( merchant_name.length() > 0 )   merchant_raw.merchant_name = merchant_name;
-    if ( merchant_detail.length() > 0 ) merchant_raw.merchant_detail = merchant_detail;
-    if ( email.length() > 0 )           merchant_raw.email = email;
-    if ( memo.length() > 0 )            merchant_raw.memo = memo;
+    merchant.state = mi.status;
+    merchant.updated_at = current_time_point();
 
-    merchant_raw.updated_at = time_point_sec(current_time_point());
+    if ( mi.merchant_name.length() > 0 )   merchant.merchant_name      = mi.merchant_name;
+    if ( mi.merchant_detail.length() > 0 ) merchant.merchant_detail    = mi.merchant_detail;
+    if ( mi.email.length() > 0 )           merchant.email              = mi.email;
+    if ( mi.memo.length() > 0 )            merchant.memo               = mi.memo;
 
-    _dbc.set( merchant_raw, get_self() );
-}
-
-void otcbook::uptmerchant(const name& merchant, const string &merchant_name, const string &merchant_detail, const string& email, const string& memo){
-    require_auth(merchant);
-    check(email.size() < 64, "email size too large: " + to_string(email.size()) );
-    check(merchant_name.size() < 32, "merchant_name size too large: " + to_string(merchant_name.size()) );
-    check(memo.size() < max_memo_size, "memo size too large: " + to_string(memo.size()) );
-
-    merchant_t merchant_raw(merchant);
-    check(_dbc.get(merchant_raw), "merchant not found");
-
-    if ( merchant_name.length() > 0 )   merchant_raw.merchant_name = merchant_name;
-    if ( merchant_detail.length() > 0 ) merchant_raw.merchant_detail = merchant_detail;
-    if ( email.length() > 0 )           merchant_raw.email = email;
-    if ( memo.length() > 0 )            merchant_raw.memo = memo;
-    merchant_raw.updated_at = time_point_sec(current_time_point());
-
-    _dbc.set( merchant_raw, get_self() );
-}
-
-
-void otcbook::enbmerchant(const name& owner, const uint8_t& state) {
-    require_auth( _conf().managers.at(otc::manager_type::admin) );
-    
-    merchant_t merchant(owner);
-    check( _dbc.get(merchant), "merchant not found: " + owner.to_string() );
-    merchant.state = state;
-    _dbc.set( merchant , get_self());
+    _dbc.set( merchant, get_self() );
 }
 
 /**

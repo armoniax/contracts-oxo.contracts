@@ -10,7 +10,7 @@
 
 #include <otcconf/otcconf_states.hpp>
 #include <otcconf/wasm_db.hpp>
-#include "otcbook_states.hpp"
+#include "otcbook.db.hpp"
 
 using namespace wasm::db;
 using namespace otc;
@@ -83,39 +83,12 @@ public:
 
     /**
      * set merchant
-     * @param merchant account name
-     * @param merchant_name merchant's name
-     * @param merchant_detail merchant's detail
-     * @param pay_methods pay methods
-     * @param email email of merchant
-     * @param memo memo of merchant
-     * @note require owner auth
+     * @param merchant_info merchant info
+     * @param by_force if true, it updates
      */
     [[eosio::action]]
-    void setmerchant(const name& merchant, const uint8_t& status, const string &merchant_name, const string &merchant_detail, const string& email, const string& memo);
+    void setmerchant( const merchant_info& mi, const bool& by_force );
 
-   /**
-     * set merchant
-     * @param merchant account name
-     * @param merchant_name merchant's name
-     * @param merchant_detail merchant's detail
-     * @param pay_methods pay methods
-     * @param email email of merchant
-     * @param memo memo of merchant
-     * @note require merchant auth
-     */
-    [[eosio::action]]
-    void uptmerchant(const name& merchant, const string &merchant_name, const string &merchant_detail, const string& email, const string& memo);
-
-
-    /**
-     * enable merchant by admin
-     * @param owner merchant account name
-     * @param state enable(11-14) or disable(2) merchant
-     * @note require admin auth
-     */
-    [[eosio::action]]
-    void enbmerchant(const name& owner, const uint8_t& state);
 
     /**
      * open order by merchant
