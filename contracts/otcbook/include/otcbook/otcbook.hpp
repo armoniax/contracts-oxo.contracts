@@ -81,6 +81,8 @@ public:
     [[eosio::action]]
     void setconf(const name &conf_contract);
 
+    ACTION delmerchant( const name& merchant_acct );
+
     /**
      * set merchant
      * @param merchant_info merchant info

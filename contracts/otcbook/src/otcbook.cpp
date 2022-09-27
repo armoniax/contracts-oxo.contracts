@@ -92,6 +92,16 @@ void otcbook::setmerchant( const merchant_info& mi, const bool& by_force ) {
     _dbc.set( merchant, get_self() );
 }
 
+void otcbook::delmerchant( const name& merchant_acct ) {
+    require_auth( _conf().managers.at(otc::manager_type::admin) );
+
+    auto merchant = merchant_t( merchant_acct );
+    CHECKC( _dbc.get(merchant), err::RECORD_NOT_FOUND, "merchant not found: " + merchant_acct.to_string() )
+
+    _dbc.del( merchant );
+
+}
+
 /**
  * only merchant allowed to open orders
  */
