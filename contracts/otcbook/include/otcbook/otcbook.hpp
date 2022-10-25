@@ -278,6 +278,12 @@ public:
     [[eosio::action]]
     void setblacklist(const name& account, uint64_t duration_second);
 
+    [[eosio::action]]
+    void addarbiter(const name& account);
+
+    [[eosio::action]]
+    void delarbiter(const name& account);
+
     // [[eosio::action]]
     // void timeoutdeal();
 

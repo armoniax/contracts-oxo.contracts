@@ -361,4 +361,17 @@ struct OTCBOOK_TBL blacklist_t {
     typedef wasm::db::multi_index_ex <"blacklist"_n, blacklist_t> idx_t;
 };
 
+
+struct OTCBOOK_TBL arbiter_t {
+    name account;               // account, PK
+
+    arbiter_t() {};
+    arbiter_t( const name& c ) : account( c ) {}
+
+    uint64_t primary_key() const { return account.value; }
+
+    typedef wasm::db::multi_index_ex <"arbiters"_n, arbiter_t> idx_t;
+    EOSLIB_SERIALIZE(arbiter_t,  (account) )
+};
+
 } // AMA
