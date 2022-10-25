@@ -649,7 +649,8 @@ void otcbook::startarbit(const name& account, const uint8_t& account_type, const
         break;
     }
 
-    check( _conf().managers.at(otc::manager_type::arbiter) == arbiter, "arbiter illegal: " + arbiter.to_string() );
+    auto arbiter_itr = arbiter_t(arbiter);
+    CHECKC( _dbc.get(arbiter_itr), err::RECORD_EXISTING, "arbiter illegal: " + arbiter.to_string() );
 
     auto status = (deal_status_t)deal_itr->status;
     auto arbit_status = (arbit_status_t)deal_itr->arbit_status;
@@ -1015,4 +1016,23 @@ void otcbook::_transfer_close_deal(name from, asset quantity, vector<string_view
 
 void otcbook::_transfer_usdt(name to, asset quantity, uint64_t deal_id) {
     TRANSFER( get_first_receiver(), to, quantity, "metabalance deal: " + to_string(deal_id) );
+}
+
+
+void otcbook::addarbiter(const name& account) {
+    require_auth( _conf().managers.at(otc::manager_type::admin) );
+
+    auto arbiter = arbiter_t(account);
+    CHECKC( !_dbc.get(arbiter), err::RECORD_EXISTING, "arbiter already exists: " + account.to_string() );
+
+    _dbc.set( arbiter, get_self());
+}
+
+void otcbook::delarbiter(const name& account) {
+    require_auth( _conf().managers.at(otc::manager_type::admin) );
+
+    auto arbiter = arbiter_t(account);
+    CHECKC( _dbc.get(arbiter), err::RECORD_EXISTING, "arbiter not found: " + account.to_string() );
+
+    _dbc.del( arbiter);
 }
