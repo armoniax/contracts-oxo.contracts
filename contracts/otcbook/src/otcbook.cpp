@@ -426,6 +426,7 @@ deal_t otcbook::_closedeal(const name& account, const uint8_t& account_type, con
     auto fee = deal_itr->deal_fee;
     auto deal_amount = _calc_deal_amount(deal_itr->deal_quantity);
     auto settle_arc = conf.managers.at(otc::manager_type::settlement);
+
     if (deal_amount.symbol == STAKE_USDT) {
         if (is_account(settle_arc)) {
             SETTLE_DEAL(settle_arc,
@@ -437,28 +438,9 @@ deal_t otcbook::_closedeal(const name& account, const uint8_t& account_type, con
                         0, 
                         deal_itr->created_at, 
                         deal_itr->closed_at);
-        }    
-
-        name swap_arc = conf.managers.at(otc::manager_type::swaper);
-        if(is_account(swap_arc)){
-            SWAP_SETTLE(swap_arc, 
-                        deal_itr->order_taker, 
-                        fee ,
-                        deal_amount);
         }
     }
 
-    name farm_arc = conf.managers.at(otc::manager_type::aplinkfarm);
-    if (is_account(farm_arc) && conf.farm_lease_id > 0 && conf.farm_scales.count(deal_amount.symbol.code())){
-        auto scale = conf.farm_scales.at(deal_amount.symbol.code());
-        auto value = multiply_decimal64( fee.amount, get_precision(APLINK_SYMBOL), get_precision(fee.symbol));
-        value = value * scale / percent_boost;
-        asset apples = asset(0, APLINK_SYMBOL);
-        aplink::farm::available_apples(farm_arc, conf.farm_lease_id, apples);
-        if(apples.amount >= value && value > 0)
-            ALLOT(  farm_arc, conf.farm_lease_id, deal_itr->order_taker,asset(value, APLINK_SYMBOL), 
-                    "metabalance farm allot: "+to_string(deal_id) );
-    }
     return *deal_itr;
 }
 
@@ -598,6 +580,11 @@ deal_t otcbook::_process(const name& account, const uint8_t& account_type, const
             break;
     }
 
+    if (deal_itr->deal_quantity.symbol == MUSDT_SYMBOL && next_status == deal_status_t::MAKER_ACCEPTED && deal_itr->order_side == BUY_SIDE) {
+        next_status = deal_status_t::TAKER_SENT;
+        _transfer_usdt(deal_itr->order_maker, deal_itr->deal_quantity, deal_itr->id);
+    }
+
     if (limited_status != deal_status_t::NONE)
         check(limited_status == status, "can not process deal action:" + to_string((uint8_t)action_type)
              + " at status: " + to_string((uint8_t)status) );
@@ -719,6 +706,7 @@ void otcbook::closearbit(const name& account, const uint64_t& deal_id, const uin
             row.va_frozen_quantity -= deal_quantity;
             row.updated_at = time_point_sec(current_time_point());
         });
+
     } else {
         // end deal - finished
         auto stake_quantity = _calc_order_stakes(deal_quantity);
@@ -735,8 +723,10 @@ void otcbook::closearbit(const name& account, const uint64_t& deal_id, const uin
         _unfrozen(merchant, stake_quantity);
         _sub_balance(merchant, stake_quantity, "arbit fine:"+to_string(deal_id));
 
+        //refund
+
         TRANSFER(_conf().stake_assets_contract.at(stake_quantity.symbol), order_taker, 
-            stake_quantity, "arbit fine: "+to_string(deal_id));
+        stake_quantity, "arbit fine: "+to_string(deal_id));
    }
 }
 
@@ -772,6 +762,7 @@ void otcbook::cancelarbit( const uint8_t& account_type, const name& account, con
         row.arbit_status = (uint8_t)arbit_status_t::UNARBITTED;
         row.updated_at = now;
     });
+
 }
 
 void otcbook::resetdeal(const name& account, const uint64_t& deal_id){
@@ -834,8 +825,6 @@ void otcbook::withdraw(const name& owner, asset quantity){
     TRANSFER( _conf().stake_assets_contract.at(quantity.symbol), owner, quantity, "merchant withdraw" )
 }
 
-
-
 void otcbook::ontransfer(name from, name to, asset quantity, string memo){
     if(_self == from || to != _self) return;
     check( _conf().stake_assets_contract.count(quantity.symbol), "Token Symbol not allowed" );
@@ -847,45 +836,17 @@ void otcbook::ontransfer(name from, name to, asset quantity, string memo){
     else {
         vector<string_view> memo_params = split(memo, ":"); 
         if (memo_params[0] == "apply" && memo_params.size() == 4) {
-            string merchant_name = string(memo_params[1]);
-            string merchant_detail = string(memo_params[2]);
-            string email = string(memo_params[3]);
-
-            check(merchant_name.size() < 20, "merchant_name size too large: " + to_string(merchant_name.size()) );
-            check(email.size() < 64, "email size too large: " + to_string(email.size()) );
-
-            merchant_t merchant(from);
-            check(!_dbc.get( merchant ),"merchant is existed");
-            
-            merchant.merchant_name = merchant_name;
-            merchant.merchant_detail = merchant_detail;
-            merchant.email = email;
-            merchant.state = (uint8_t)merchant_status_t::REGISTERED;
-            _add_balance(merchant, quantity, "merchant deposit");
-            _dbc.set(merchant, get_self());
+            _merchant_apply(from, quantity, memo_params);
+        }
+        else if (memo_params[0] == "opendeal" && memo_params.size() == 4) {
+            _transfer_open_deal(from, quantity, memo_params);
         }
         else if (memo_params[0] == "process" && memo_params.size() == 4) {
-            uint8_t account_type = to_uint8(memo_params[1], "account_type id param error");
-            uint64_t deal_id = to_uint64(memo_params[2], "deal id param error");
-            uint8_t action_type = to_uint64(memo_params[3], "action_type id param error");
-            deal_t deal = _process(from, account_type, deal_id, action_type);
-            auto stake_coin_type = _conf().coin_as_stake.at(deal.deal_quantity.symbol);
-            auto stake_amount = multiply_decimal64( deal.deal_quantity.amount, get_precision(stake_coin_type), get_precision(deal.deal_quantity.symbol));
-            CHECKC( asset(stake_amount, stake_coin_type) == quantity, err::SYMBOL_MISMATCH, "quantity must eqault to deal quantity" )
-            TRANSFER( get_first_receiver(), from == deal.order_maker? deal.order_taker : deal.order_maker, 
-                quantity, "metabalance deal: " + to_string(deal.id) );
+            _transfer_process_deal(from, quantity, memo_params);
         }
         else if (memo_params[0] == "close" && memo_params.size() == 3) {
-            uint8_t account_type = to_uint8(memo_params[1], "account_type id param error");
-            uint64_t deal_id = to_uint64(memo_params[2], "deal id param error");
-            deal_t deal = _closedeal(from, account_type, deal_id, "auto close by transfer", true);
-            auto stake_coin_type = _conf().coin_as_stake.at(deal.deal_quantity.symbol);
-            auto stake_amount = multiply_decimal64( deal.deal_quantity.amount, get_precision(stake_coin_type), get_precision(deal.deal_quantity.symbol));
-            CHECKC( asset(stake_amount, stake_coin_type) == quantity, err::SYMBOL_MISMATCH, "quantity must eqault to deal quantity" )
-            TRANSFER( get_first_receiver(), from == deal.order_maker? deal.order_taker : deal.order_maker, 
-                quantity, "metabalance deal: " + to_string(deal.id) );
-        }
-        else {
+            _transfer_close_deal(from, quantity, memo_params);
+        } else {
             _deposit(from, to, quantity, memo);
         }
     }
@@ -993,4 +954,61 @@ void otcbook::_unfrozen(merchant_t& merchant, const asset& quantity){
     merchant.assets[quantity.symbol].balance += quantity.amount;
     merchant.updated_at = current_time_point();
     _dbc.set( merchant , get_self());
+}
+
+
+void otcbook::_merchant_apply(name from, asset quantity, vector<string_view> memo_params) {
+
+    string merchant_name = string(memo_params[1]);
+    string merchant_detail = string(memo_params[2]);
+    string email = string(memo_params[3]);
+
+    check(merchant_name.size() < 20, "merchant_name size too large: " + to_string(merchant_name.size()) );
+    check(email.size() < 64, "email size too large: " + to_string(email.size()) );
+
+    merchant_t merchant(from);
+    check(!_dbc.get( merchant ),"merchant is existed");
+    
+    merchant.merchant_name = merchant_name;
+    merchant.merchant_detail = merchant_detail;
+    merchant.email = email;
+    merchant.state = (uint8_t)merchant_status_t::REGISTERED;
+    _add_balance(merchant, quantity, "merchant deposit");
+    _dbc.set(merchant, get_self());
+}
+
+void otcbook::_transfer_open_deal(name from, asset quantity, vector<string_view> memo_params) {
+
+    CHECKC( quantity.symbol == MUSDT_SYMBOL,  err::SYMBOL_MISMATCH, "quantity symbol must musdt");
+    uint64_t order_id = to_uint64(memo_params[1], "order id param error");
+    uint64_t order_sn = to_uint64(memo_params[2], "order sn param error");
+    name pay_type = name(memo_params[3]);
+    opendeal( from, SELL_SIDE, order_id, quantity,  order_sn, pay_type);
+}
+
+void otcbook::_transfer_process_deal(name from, asset quantity, vector<string_view> memo_params) {
+    uint8_t account_type = to_uint8(memo_params[1], "account_type id param error");
+    uint64_t deal_id = to_uint64(memo_params[2], "deal id param error");
+    uint8_t action_type = to_uint64(memo_params[3], "action_type id param error");
+    deal_t deal = _process(from, account_type, deal_id, action_type);
+    auto stake_coin_type = _conf().coin_as_stake.at(deal.deal_quantity.symbol);
+    auto stake_amount = multiply_decimal64( deal.deal_quantity.amount, get_precision(stake_coin_type), get_precision(deal.deal_quantity.symbol));
+    CHECKC( asset(stake_amount, stake_coin_type) == quantity, err::SYMBOL_MISMATCH, "quantity must eqault to deal quantity" )
+    TRANSFER( get_first_receiver(), from == deal.order_maker? deal.order_taker : deal.order_maker, 
+        quantity, "metabalance deal: " + to_string(deal.id) );
+}
+
+void otcbook::_transfer_close_deal(name from, asset quantity, vector<string_view> memo_params) {
+    uint8_t account_type = to_uint8(memo_params[1], "account_type id param error");
+    uint64_t deal_id = to_uint64(memo_params[2], "deal id param error");
+    deal_t deal = _closedeal(from, account_type, deal_id, "auto close by transfer", true);
+    auto stake_coin_type = _conf().coin_as_stake.at(deal.deal_quantity.symbol);
+    auto stake_amount = multiply_decimal64( deal.deal_quantity.amount, get_precision(stake_coin_type), get_precision(deal.deal_quantity.symbol));
+    CHECKC( asset(stake_amount, stake_coin_type) == quantity, err::SYMBOL_MISMATCH, "quantity must eqault to deal quantity" )
+    TRANSFER( get_first_receiver(), from == deal.order_maker? deal.order_taker : deal.order_maker, 
+        quantity, "metabalance deal: " + to_string(deal.id) );
+}
+
+void otcbook::_transfer_usdt(name to, asset quantity, uint64_t deal_id) {
+    TRANSFER( get_first_receiver(), to, quantity, "metabalance deal: " + to_string(deal_id) );
 }

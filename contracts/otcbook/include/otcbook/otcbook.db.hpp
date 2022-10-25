@@ -25,6 +25,7 @@ static constexpr eosio::name active_perm{"active"_n};
 // crypto assets
 static constexpr symbol   CNYD_SYMBOL           = SYMBOL("CNYD", 4);
 static constexpr symbol   CNY                   = SYMBOL("CNY", 4);
+static constexpr symbol   MUSDT_SYMBOL          = SYMBOL("MUSDT", 6);
 static constexpr symbol   APLINK_SYMBOL              = SYMBOL("APL", 4);
 
 static constexpr uint64_t percent_boost     = 10000;

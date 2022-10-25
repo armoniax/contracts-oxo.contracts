@@ -311,6 +311,23 @@ private:
     void _sub_balance(merchant_t& merchant, const asset& quantity, const string & memo);
     void _frozen(merchant_t& merchant, const asset& quantity);
     void _unfrozen(merchant_t& merchant, const asset& quantity);
+
+    void _merchant_apply(name from, asset quantity, vector<string_view> memo_params);
+    /**
+     * customer transfer
+    */
+    void _transfer_open_deal(name from, asset quantity, vector<string_view> memo_params);
+
+
+    void _transfer_process_deal(name from, asset quantity, vector<string_view> memo_params);
+
+    /**
+     * merchart close deal 
+    */
+    void _transfer_close_deal(name from, asset quantity, vector<string_view> memo_params);
+
+
+    void _transfer_usdt(name to, asset quantity, uint64_t deal_id);
 };
 
 }
