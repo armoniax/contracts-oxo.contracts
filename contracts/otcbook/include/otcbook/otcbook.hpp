@@ -195,13 +195,10 @@ public:
      * @param account account name
      * @param account_type account type, merchant(2) | user(3)
      * @param deal_id deal_id, created by opendeal()
-     * @param arbiter arbiter's name
-     * @param session_msg session msg(message)
      * @note require account auth
      */
      [[eosio::action]]
-    void startarbit(const name& account, const uint8_t& account_type, const uint64_t& deal_id,
-        const name& arbiter);
+    void startarbit(const name& account, const uint8_t& account_type, const uint64_t& deal_id);
 
 
     /**
@@ -334,6 +331,8 @@ private:
 
 
     void _transfer_usdt(name to, asset quantity, uint64_t deal_id);
+
+    name _rand_arbiter( const uint64_t deal_id );
 };
 
 }
