@@ -1035,9 +1035,7 @@ void otcbook::delarbiter(const name& account) {
 
     _dbc.del( arbiter);
     _gstate.arbiter_count = _gstate.arbiter_count - 1;
-    
 }
-
 
 name otcbook::_rand_arbiter( const uint64_t deal_id ) {
 
@@ -1045,7 +1043,9 @@ name otcbook::_rand_arbiter( const uint64_t deal_id ) {
 
     arbiter_t::idx_t arbiter_idx( get_self(), get_self().value);
     auto itr = arbiter_idx.begin();
-    advance( itr , rand - 1 );
+    if (rand > 0) {
+        advance( itr , rand );
+    }
     
     return itr->account;
 }
