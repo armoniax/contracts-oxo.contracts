@@ -57,7 +57,12 @@ static constexpr uint64_t default_withdraw_limit_second = DEFAULT_WITHDRAW_LIMIT
 
 struct [[eosio::table("global"), eosio::contract("otcbook")]] global_t {
     name conf_contract      = "otcconf"_n;
-    EOSLIB_SERIALIZE( global_t, (conf_contract))
+    uint64_t sell_order_id  = 1000;
+    uint64_t buy_order_id   = 1000;
+    uint64_t deal_id        = 1000;
+    uint64_t arbiter_count  = 0;
+
+    EOSLIB_SERIALIZE( global_t, (conf_contract)(sell_order_id)(buy_order_id)(deal_id)(arbiter_count))
 };
 typedef eosio::singleton< "global"_n, global_t > global_singleton;
 
@@ -370,7 +375,7 @@ struct OTCBOOK_TBL arbiter_t {
 
     uint64_t primary_key() const { return account.value; }
 
-    typedef wasm::db::multi_index_ex <"arbiters"_n, arbiter_t> idx_t;
+    typedef eosio::multi_index <"arbiters"_n, arbiter_t> idx_t;
     EOSLIB_SERIALIZE(arbiter_t,  (account) )
 };
 

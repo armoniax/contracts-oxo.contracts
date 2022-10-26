@@ -623,7 +623,7 @@ void otcbook::processdeal(const name& account, const uint8_t& account_type, cons
 }
 
 
-void otcbook::startarbit(const name& account, const uint8_t& account_type, const uint64_t& deal_id, const name& arbiter) {
+void otcbook::startarbit(const name& account, const uint8_t& account_type, const uint64_t& deal_id) {
     require_auth( account );
 
     deal_t::idx_t deals(_self, _self.value);
@@ -649,9 +649,7 @@ void otcbook::startarbit(const name& account, const uint8_t& account_type, const
         break;
     }
 
-    auto arbiter_itr = arbiter_t(arbiter);
-    CHECKC( _dbc.get(arbiter_itr), err::RECORD_EXISTING, "arbiter illegal: " + arbiter.to_string() );
-
+    auto  arbiter = _rand_arbiter( deal_id );
     auto status = (deal_status_t)deal_itr->status;
     auto arbit_status = (arbit_status_t)deal_itr->arbit_status;
     check( arbit_status == arbit_status_t::UNARBITTED, "arbit already started: " + to_string(deal_id) );
@@ -1026,6 +1024,7 @@ void otcbook::addarbiter(const name& account) {
     CHECKC( !_dbc.get(arbiter), err::RECORD_EXISTING, "arbiter already exists: " + account.to_string() );
 
     _dbc.set( arbiter, get_self());
+    _gstate.arbiter_count = _gstate.arbiter_count + 1;
 }
 
 void otcbook::delarbiter(const name& account) {
@@ -1035,4 +1034,18 @@ void otcbook::delarbiter(const name& account) {
     CHECKC( _dbc.get(arbiter), err::RECORD_EXISTING, "arbiter not found: " + account.to_string() );
 
     _dbc.del( arbiter);
+    _gstate.arbiter_count = _gstate.arbiter_count - 1;
+    
+}
+
+
+name otcbook::_rand_arbiter( const uint64_t deal_id ) {
+
+    uint64_t rand = deal_id % _gstate.arbiter_count;
+
+    arbiter_t::idx_t arbiter_idx( get_self(), get_self().value);
+    auto itr = arbiter_idx.begin();
+    advance( itr , rand - 1 );
+    
+    return itr->account;
 }
