@@ -180,13 +180,15 @@ void otcbook::openorder(const name& owner, const name& order_side, const set<nam
 
     if (order_side == BUY_SIDE) {
         buy_order_table_t orders(_self, _self.value);
-        order.id = orders.available_primary_key();
+        _gstate.buy_order_id++;
+        order.id = _gstate.buy_order_id;
         orders.emplace( _self, [&]( auto& row ) {
             row = order;
         });
     } else {
         sell_order_table_t orders(_self, _self.value);
-        order.id = orders.available_primary_key();
+        _gstate.sell_order_id++;
+        order.id = _gstate.sell_order_id;
         orders.emplace( _self, [&]( auto& row ) {
             row = order;
         });
@@ -299,9 +301,10 @@ void otcbook::opendeal( const name& taker, const name& order_side, const uint64_
     auto deal_fee = _calc_deal_fee(deal_quantity);
 
     auto deal_id = deals.available_primary_key();
+    _gstate.deal_id ++;
     // deals.emplace( taker, [&]( auto& row ) {
     deals.emplace( _self,       [&]( auto& row ) { //free user from paying ram fees
-        row.id 					= deal_id;
+        row.id 					= _gstate.deal_id;
         row.order_side 			= order_side;
         row.merchant_name       = merchant_name;
         row.order_id 			= order_id;
