@@ -17,6 +17,9 @@ static constexpr eosio::name active_permission{"active"_n};
     {	metabalance::otcbook::dealnotify_action act{ _self, { {_self, active_permission} } };\
 			act.send( account, info , memo );}
 
+#define REJECT_MERCHANT(account, reject_reason, curr) \
+    {	metabalance::otcbook::reject_merchant_action act{ _self, { {_self, active_permission} } };\
+			act.send( account, reject_reason , curr );}
 
 #define ALLOT(bank, land_id, customer, quantity, memo) \
     {	aplink::farm::allot_action act{ bank, { {_self, active_perm} } };\
@@ -88,7 +91,9 @@ void otcbook::setmerchant( const merchant_info& mi, const bool& by_force ) {
     if ( mi.merchant_detail.length() > 0 ) merchant.merchant_detail    = mi.merchant_detail;
     if ( mi.email.length() > 0 )           merchant.email              = mi.email;
     if ( mi.memo.length() > 0 )            merchant.memo               = mi.memo;
-    if ( mi.reject_reason.length() > 0 )   merchant.reject_reason               = mi.reject_reason;
+    if ( mi.reject_reason.length() > 0 )   {
+        REJECT_MERCHANT(merchant.owner, mi.reject_reason, time_point_sec(current_time_point()) );
+    }
 
     _dbc.set( merchant, get_self() );
 }
@@ -902,7 +907,12 @@ void otcbook::dealnotify(const name& account, const AppInfo_t &info, const strin
     require_recipient(account);
 }
 
-ACTION otcbook::setdearbiter(const uint64_t& deal_id, const name& new_arbiter) {
+void otcbook::rejectmerch(const name& account, const string& reject_reason, const time_point_sec& curr_ts){
+    require_auth(get_self());
+    require_recipient(account);
+}
+
+void otcbook::setdearbiter(const uint64_t& deal_id, const name& new_arbiter) {
     require_auth( _self );
 
     deal_t::idx_t deals(_self, _self.value);
@@ -1019,6 +1029,8 @@ void otcbook::_transfer_usdt(name to, asset quantity, uint64_t deal_id) {
 
 void otcbook::addarbiter(const name& account) {
     require_auth( _conf().managers.at(otc::manager_type::admin) );
+
+    CHECKC(is_account(account), err::ACCOUNT_INVALID,  "account not existed: " +  account.to_string());
 
     auto arbiter = arbiter_t(account);
     CHECKC( !_dbc.get(arbiter), err::RECORD_EXISTING, "arbiter already exists: " + account.to_string() );

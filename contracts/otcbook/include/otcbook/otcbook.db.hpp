@@ -159,8 +159,6 @@ struct OTCBOOK_TBL merchant_t {
     uint8_t state;                  // status, merchant_status_t
     map<symbol, asset_stake> assets;
     time_point_sec updated_at;
-    string reject_reason;
-
 
     merchant_t() {}
     merchant_t(const name& o): owner(o) {}
@@ -176,7 +174,7 @@ struct OTCBOOK_TBL merchant_t {
     > idx_t;
 
     EOSLIB_SERIALIZE(merchant_t,  (owner)(merchant_name)(merchant_detail)
-                                  (email)(memo)(state)(assets)(updated_at)(reject_reason) )
+                                  (email)(memo)(state)(assets)(updated_at) )
 };
 
 /**
