@@ -60,6 +60,9 @@ asset otcbook::_calc_deal_fee(const asset &quantity) {
     auto stake_symbol = _conf().coin_as_stake.at(quantity.symbol);
     auto value = multiply_decimal64( quantity.amount, get_precision(stake_symbol), get_precision(quantity) );
     const auto & fee_pct = _conf().fee_pct;
+    if (fee_pct  == 0) {
+        return asset(0, stake_symbol);
+    }
     int64_t amount = multiply_decimal64(value, fee_pct, percent_boost);
     amount = multiply_decimal64(amount, get_precision(stake_symbol), get_precision(quantity));
     return asset(amount, stake_symbol);
@@ -425,11 +428,16 @@ deal_t otcbook::_closedeal(const name& account, const uint8_t& account_type, con
     merchant_t merchant(order_maker);
     check( _dbc.get(merchant), "merchant not found: " + order_maker.to_string() );
     _unfrozen(merchant, stake_quantity);
-    _sub_balance(merchant, deal_fee, "fee:"+to_string(deal_id));
 
-    const auto &fee_recv_addr  = conf.managers.at(otc::manager_type::feetaker);
-    TRANSFER( conf.stake_assets_contract.at(deal_fee.symbol), fee_recv_addr, deal_fee, 
-        "otcfee:"+to_string(order_id) + ":" +  to_string(deal_id));
+    if ( deal_fee.amount > 0) {
+        _sub_balance(merchant, deal_fee, "fee:"+to_string(deal_id));
+        const auto &fee_recv_addr  = conf.managers.at(otc::manager_type::feetaker);
+        TRANSFER( conf.stake_assets_contract.at(deal_fee.symbol), fee_recv_addr, deal_fee, 
+            "otcfee:"+to_string(order_id) + ":" +  to_string(deal_id));
+    }
+
+
+
 
     auto fee = deal_itr->deal_fee;
     auto deal_amount = _calc_deal_amount(deal_itr->deal_quantity);
