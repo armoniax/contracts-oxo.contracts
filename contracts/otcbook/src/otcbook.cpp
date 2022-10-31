@@ -1003,11 +1003,11 @@ void otcbook::_merchant_apply(name from, asset quantity, vector<string_view> mem
 
 void otcbook::_transfer_open_deal(name from, asset quantity, vector<string_view> memo_params) {
 
-    CHECKC( quantity.symbol == MUSDT_SYMBOL,  err::SYMBOL_MISMATCH, "quantity symbol must musdt");
+    // CHECKC( quantity.symbol == MUSDT_SYMBOL,  err::SYMBOL_MISMATCH, "quantity symbol must musdt");
     uint64_t order_id = to_uint64(memo_params[1], "order id param error");
     uint64_t order_sn = to_uint64(memo_params[2], "order sn param error");
     name pay_type = name(memo_params[3]);
-    opendeal( from, SELL_SIDE, order_id, quantity,  order_sn, pay_type);
+    opendeal( from, BUY_SIDE, order_id, quantity,  order_sn, pay_type);
 }
 
 void otcbook::_transfer_process_deal(name from, asset quantity, vector<string_view> memo_params) {
