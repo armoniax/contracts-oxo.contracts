@@ -79,7 +79,7 @@ public:
      * @note require admin auth
      */
     [[eosio::action]]
-    void setconf(const name &conf_contract);
+    void setconf(const name &conf_contract, const name& token_split_contract, const uint64_t& token_split_plan_id );
 
     ACTION delmerchant( const name& merchant_acct );
 
@@ -337,6 +337,9 @@ private:
     void _transfer_usdt(name to, asset quantity, uint64_t deal_id);
 
     name _rand_arbiter( const uint64_t deal_id );
+
+    void _check_split_plan( const name& token_split_contract, const uint64_t& token_split_plan_id, const name& scope );
+    
 };
 
 }
