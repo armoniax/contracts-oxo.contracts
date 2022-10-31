@@ -37,6 +37,9 @@ static constexpr uint64_t seconds_per_day                   = 24 * 3600;
 static constexpr uint64_t seconds_per_year                  = 365 * seconds_per_day;
 static constexpr uint64_t max_blacklist_duration_second     = 100 * seconds_per_year; // 100 year
 
+constexpr eosio::name MBANK                     = "amax.mtoken"_n;
+
+
 #ifndef DEFAULT_BLACKLIST_DURATION_SECOND_FOR_TEST
 static constexpr uint64_t default_blacklist_duration_second = 3 * seconds_per_day;    // 3 days
 #else
@@ -62,8 +65,11 @@ struct [[eosio::table("global"), eosio::contract("otcbook")]] global_t {
     uint64_t buy_order_id   = 1000;
     uint64_t deal_id        = 1000;
     uint64_t arbiter_count  = 0;
+    name token_split_contract;
+    uint64_t token_split_plan_id  = 0;
 
-    EOSLIB_SERIALIZE( global_t, (conf_contract)(sell_order_id)(buy_order_id)(deal_id)(arbiter_count))
+
+    EOSLIB_SERIALIZE( global_t, (conf_contract)(sell_order_id)(buy_order_id)(deal_id)(arbiter_count)(token_split_contract)(token_split_plan_id))
 };
 typedef eosio::singleton< "global"_n, global_t > global_singleton;
 
