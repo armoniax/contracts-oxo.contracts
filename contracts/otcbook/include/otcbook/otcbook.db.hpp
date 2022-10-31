@@ -127,6 +127,7 @@ enum class merchant_status_t: uint8_t {
     REGISTERED          = 1,
     DISABLED            = 2,
     FROZEN              = 3,
+    REJECT              = 9,
     
     BASIC               = 11,   //基础商户
     GOLD                = 12,   //金牌商户

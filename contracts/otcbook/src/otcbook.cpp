@@ -80,7 +80,7 @@ void otcbook::setconf(const name &conf_contract, const name& token_split_contrac
 }
 
 void otcbook::setmerchant( const merchant_info& mi, const bool& by_force ) {
-    CHECKC( has_auth(_conf().managers.at(otc::manager_type::admin)) || has_auth(mi.account), err::NO_AUTH, "neither admin nor merchant" )
+    CHECKC( has_auth(_conf().managers.at(otc::manager_type::admin)), err::NO_AUTH, "neither admin nor merchant" )
 
     check(is_account(mi.account), "account invalid: " + mi.account.to_string());
     check(mi.merchant_name.size() < 32, "merchant_name size too large: " + to_string(mi.merchant_name.size()) );
@@ -102,6 +102,23 @@ void otcbook::setmerchant( const merchant_info& mi, const bool& by_force ) {
         REJECT_MERCHANT(merchant.owner, mi.reject_reason, time_point_sec(current_time_point()) );
     }
 
+    _dbc.set( merchant, get_self() );
+}
+
+
+void otcbook::remerchant( const merchant_info& mi) {
+    require_auth(mi.account);
+
+    auto merchant = merchant_t(mi.account);
+    auto found = _dbc.get(merchant);
+    CHECKC( !found, err::RECORD_EXISTING, "merchant not found: " + mi.account.to_string() )
+    CHECKC( mi.status == (uint8_t)merchant_status_t::REJECT, err::NO_AUTH, "merchant status is not reject.")
+    merchant.state = (uint8_t)merchant_status_t::REGISTERED;
+    merchant.updated_at = current_time_point();
+    if ( mi.merchant_name.length() > 0 )   merchant.merchant_name      = mi.merchant_name;
+    if ( mi.merchant_detail.length() > 0 ) merchant.merchant_detail    = mi.merchant_detail;
+    if ( mi.email.length() > 0 )           merchant.email              = mi.email;
+    if ( mi.memo.length() > 0 )            merchant.memo               = mi.memo;
     _dbc.set( merchant, get_self() );
 }
 

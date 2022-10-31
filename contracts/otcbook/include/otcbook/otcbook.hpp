@@ -91,6 +91,8 @@ public:
     [[eosio::action]]
     void setmerchant( const merchant_info& mi, const bool& by_force );
 
+    [[eosio::action]]
+    void remerchant( const merchant_info& mi);
 
     /**
      * open order by merchant
