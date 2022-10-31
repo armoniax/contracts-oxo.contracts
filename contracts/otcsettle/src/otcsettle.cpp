@@ -56,7 +56,7 @@ void settle::deal(const uint64_t& deal_id,
     CHECKC(is_account(merchant), err::ACCOUNT_INVALID, "invalid account: " + merchant.to_string());
     CHECKC(is_account(user), err::ACCOUNT_INVALID, "invalid account: " + user.to_string());
     CHECKC(quantity.amount > 0, err::PARAM_ERROR, "quantity must be positive");
-    CHECKC(fee.amount > 0, err::PARAM_ERROR, "quantity must be positive");
+    CHECKC(fee.amount >= 0, err::PARAM_ERROR, "quantity must be positive");
     CHECKC(conf.settle_levels.size()>0, err::UN_INITIALIZE, "level config hasn't set");
     CHECKC(end_at > start_at, err::PARAM_ERROR, "end time should later than start time");
     if(quantity.symbol != CASH_SYMBOL || fee.symbol != CASH_SYMBOL) return;
@@ -102,21 +102,6 @@ void settle::deal(const uint64_t& deal_id,
         }
     }
     _db.set(creator_data, _self);
-
-    auto config = conf.settle_levels.at(min(creator_data.level, uint8_t(conf.settle_levels.size()-1)));
-    if(config.cash_rate + config.score_rate == 0) return;
-    auto rewards = reward_t::idx_t(_self, _self.value);
-    auto pid = rewards.available_primary_key();
-    auto reward = reward_t(pid);
-    reward.deal_id = deal_id;
-    reward.reciptian = creator;
-
-    reward.cash = fee*config.cash_rate/RATE_BOOST;
-    auto score_amount = multiply_decimal64( fee.amount, get_precision(otc::SCORE_SYMBOL), get_precision(fee.symbol));
-    reward.score = asset(score_amount*config.score_rate/RATE_BOOST, SCORE_SYMBOL);
-    reward.created_at = time_point_sec(current_time_point());
-
-    _db.set(reward, _self);
 }
 
 void settle::claim(const name& reciptian, vector<uint64_t> rewards){
