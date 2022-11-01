@@ -111,8 +111,8 @@ void otcbook::remerchant( const merchant_info& mi) {
 
     auto merchant = merchant_t(mi.account);
     auto found = _dbc.get(merchant);
-    CHECKC( !found, err::RECORD_EXISTING, "merchant not found: " + mi.account.to_string() )
-    CHECKC( mi.status == (uint8_t)merchant_status_t::REJECT, err::NO_AUTH, "merchant status is not reject.")
+    CHECKC( found, err::RECORD_EXISTING, "merchant not found: " + mi.account.to_string() )
+    CHECKC( merchant.state == (uint8_t)merchant_status_t::REJECT &&  mi.status == (uint8_t)merchant_status_t::REGISTERED, err::NO_AUTH, "merchant status is not reject.")
     merchant.state = (uint8_t)merchant_status_t::REGISTERED;
     merchant.updated_at = current_time_point();
     if ( mi.merchant_name.length() > 0 )   merchant.merchant_name      = mi.merchant_name;
