@@ -98,7 +98,7 @@ void otcbook::setmerchant( const merchant_info& mi, const bool& by_force ) {
     if ( mi.merchant_detail.length() > 0 ) merchant.merchant_detail    = mi.merchant_detail;
     if ( mi.email.length() > 0 )           merchant.email              = mi.email;
     if ( mi.memo.length() > 0 )            merchant.memo               = mi.memo;
-    if ( mi.reject_reason.length() > 0 )   {
+    if ( mi.status == (uint8_t)merchant_status_t::REJECT && mi.reject_reason.length() > 1 )   {
         REJECT_MERCHANT(merchant.owner, mi.reject_reason, time_point_sec(current_time_point()) );
     }
 
