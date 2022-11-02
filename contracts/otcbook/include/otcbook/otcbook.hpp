@@ -341,6 +341,9 @@ private:
     name _rand_arbiter( const uint64_t deal_id );
 
     void _check_split_plan( const name& token_split_contract, const uint64_t& token_split_plan_id, const name& scope );
+
+    void _opendeal( const name& taker, const name& order_side, const uint64_t& order_id,
+                        const asset& deal_quantity, const uint64_t& order_sn, const name& pay_type);
     
 };
 

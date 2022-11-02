@@ -85,6 +85,7 @@ void otcbook::setmerchant( const merchant_info& mi, const bool& by_force ) {
     check(is_account(mi.account), "account invalid: " + mi.account.to_string());
     check(mi.merchant_name.size() < 32, "merchant_name size too large: " + to_string(mi.merchant_name.size()) );
     check(mi.email.size() < 64, "email size too large: " + to_string(mi.email.size()) );
+    check(mi.merchant_detail.size() < 255, "mechant detail size too large: " + to_string(mi.merchant_detail.size()) );
     check(mi.memo.size() < max_memo_size, "memo size too large: " + to_string(mi.memo.size()) );
 
     auto merchant = merchant_t(mi.account);
@@ -108,6 +109,11 @@ void otcbook::setmerchant( const merchant_info& mi, const bool& by_force ) {
 
 void otcbook::remerchant( const merchant_info& mi) {
     require_auth(mi.account);
+
+    check(mi.merchant_name.size() < 32, "merchant_name size too large: " + to_string(mi.merchant_name.size()) );
+    check(mi.email.size() < 64, "email size too large: " + to_string(mi.email.size()) );
+    check(mi.memo.size() < max_memo_size, "memo size too large: " + to_string(mi.memo.size()) );
+    check(mi.merchant_detail.size() < 255, "mechant detail size too large: " + to_string(mi.merchant_detail.size()) );
 
     auto merchant = merchant_t(mi.account);
     auto found = _dbc.get(merchant);
@@ -285,10 +291,15 @@ void otcbook::closeorder(const name& owner, const name& order_side, const uint64
         row.closed_at = time_point_sec(current_time_point());
         row.updated_at  = time_point_sec(current_time_point());
     });
-
 }
 
 void otcbook::opendeal( const name& taker, const name& order_side, const uint64_t& order_id,
+                        const asset& deal_quantity, const uint64_t& order_sn, const name& pay_type) {
+    check (deal_quantity.symbol != USDTARC_SYMBOL, "deal quantity must not USDTARC_SYMBOL");
+    _opendeal( taker, order_side, order_id, deal_quantity, order_sn,  pay_type);
+} 
+
+void otcbook::_opendeal( const name& taker, const name& order_side, const uint64_t& order_id,
                         const asset& deal_quantity, const uint64_t& order_sn, const name& pay_type) {
     require_auth( taker );
 
@@ -616,7 +627,7 @@ deal_t otcbook::_process(const name& account, const uint8_t& account_type, const
             break;
     }
 
-    if (deal_itr->deal_quantity.symbol == MUSDT_SYMBOL && next_status == deal_status_t::MAKER_ACCEPTED && deal_itr->order_side == BUY_SIDE) {
+    if (deal_itr->deal_quantity.symbol == USDTARC_SYMBOL && next_status == deal_status_t::MAKER_ACCEPTED && deal_itr->order_side == BUY_SIDE) {
         next_status = deal_status_t::TAKER_SENT;
         _transfer_usdt(deal_itr->order_maker, deal_itr->deal_quantity, deal_itr->id);
     }
@@ -1024,7 +1035,7 @@ void otcbook::_transfer_open_deal(name from, asset quantity, vector<string_view>
     uint64_t order_id = to_uint64(memo_params[1], "order id param error");
     uint64_t order_sn = to_uint64(memo_params[2], "order sn param error");
     name pay_type = name(memo_params[3]);
-    opendeal( from, BUY_SIDE, order_id, quantity,  order_sn, pay_type);
+    _opendeal( from, BUY_SIDE, order_id, quantity,  order_sn, pay_type);
 }
 
 void otcbook::_transfer_process_deal(name from, asset quantity, vector<string_view> memo_params) {
