@@ -376,7 +376,11 @@ struct OTCBOOK_TBL blacklist_t {
 
 
 struct OTCBOOK_TBL arbiter_t {
-    name account;               // account, PK
+    name        account;               // account, PK
+    string      email;
+    uint64_t    failed_case_num = 0;
+    uint64_t    closed_case_num = 0;
+    asset       total_quant;
 
     arbiter_t() {};
     arbiter_t( const name& c ) : account( c ) {}
@@ -384,7 +388,7 @@ struct OTCBOOK_TBL arbiter_t {
     uint64_t primary_key() const { return account.value; }
 
     typedef eosio::multi_index <"arbiters"_n, arbiter_t> idx_t;
-    EOSLIB_SERIALIZE(arbiter_t,  (account) )
+    EOSLIB_SERIALIZE(arbiter_t,  (account)(failed_case_num)(closed_case_num)(total_quant) )
 };
 
 } // AMA

@@ -278,7 +278,7 @@ public:
     void setblacklist(const name& account, uint64_t duration_second);
 
     [[eosio::action]]
-    void addarbiter(const name& account);
+    void addarbiter(const name& account, const string& email);
 
     [[eosio::action]]
     void delarbiter(const name& account);
@@ -344,6 +344,8 @@ private:
 
     void _opendeal( const name& taker, const name& order_side, const uint64_t& order_id,
                         const asset& deal_quantity, const uint64_t& order_sn, const name& pay_type);
+    
+    void _update_arbiter_info( const name& account, const asset& quant, const bool& closed);
     
 };
 
