@@ -1115,8 +1115,6 @@ void otcbook::_check_split_plan( const name& token_split_contract, const uint64_
 }
 
 void otcbook::_update_arbiter_info( const name& account, const asset& quant, const bool& closed) {
-    require_auth( _conf().managers.at(otc::manager_type::admin) );
-
     auto arbiter = arbiter_t(account);
     CHECKC( _dbc.get(arbiter), err::RECORD_EXISTING, "arbiter not found: " + account.to_string() );
     if ( closed ) {
