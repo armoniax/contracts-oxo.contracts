@@ -388,7 +388,7 @@ struct OTCBOOK_TBL arbiter_t {
     uint64_t primary_key() const { return account.value; }
 
     typedef eosio::multi_index <"arbiters"_n, arbiter_t> idx_t;
-    EOSLIB_SERIALIZE(arbiter_t,  (account)(failed_case_num)(closed_case_num)(total_quant) )
+    EOSLIB_SERIALIZE(arbiter_t,  (account)(email)(failed_case_num)(closed_case_num)(total_quant) )
 };
 
 } // AMA
