@@ -28,6 +28,8 @@ static constexpr symbol   CNY                   = SYMBOL("CNY", 4);
 static constexpr symbol   MUSDT_SYMBOL          = SYMBOL("MUSDT", 6);
 static constexpr symbol   USDTARC_SYMBOL        = SYMBOL("USDTARC", 6);
 static constexpr symbol   APLINK_SYMBOL         = SYMBOL("APL", 4);
+static constexpr eosio::name MT_BANK{"amax.mtoken"_n};
+
 
 static constexpr uint64_t percent_boost     = 10000;
 static constexpr uint64_t order_stake_pct   = 10000; // 100%
