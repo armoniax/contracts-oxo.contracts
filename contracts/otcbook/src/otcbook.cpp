@@ -626,10 +626,12 @@ deal_t otcbook::_process(const name& account, const uint8_t& account_type, const
             check(false, "unsupported process deal action:" + to_string((uint8_t)action_type));
             break;
     }
-
     if (deal_itr->deal_quantity.symbol == USDTARC_SYMBOL && next_status == deal_status_t::MAKER_ACCEPTED && deal_itr->order_side == BUY_SIDE) {
         next_status = deal_status_t::TAKER_SENT;
-        _transfer_usdt(deal_itr->order_maker, deal_itr->deal_quantity, deal_itr->id);
+        asset deal_quantity;
+        deal_quantity.symbol = MUSDT_SYMBOL;
+        deal_quantity.amount = deal_itr->deal_quantity.amount;
+        _transfer_usdt(deal_itr->order_maker, deal_quantity, deal_itr->id);
     }
 
     if (limited_status != deal_status_t::NONE)
@@ -657,6 +659,7 @@ deal_t otcbook::_process(const name& account, const uint8_t& account_type, const
             row.merchant_paid_at = time_point_sec(current_time_point());
         }
     });
+
     return *deal_itr;
 }
 
@@ -1062,7 +1065,7 @@ void otcbook::_transfer_close_deal(name from, asset quantity, vector<string_view
 }
 
 void otcbook::_transfer_usdt(name to, asset quantity, uint64_t deal_id) {
-    TRANSFER( get_first_receiver(), to, quantity, "metabalance deal: " + to_string(deal_id) );
+    TRANSFER( MT_BANK, to, quantity, "metabalance deal: " + to_string(deal_id) );
 }
 
 
