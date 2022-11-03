@@ -756,6 +756,8 @@ void otcbook::closearbit(const name& account, const uint64_t& deal_id, const uin
             row.updated_at = time_point_sec(current_time_point());
         });
 
+        _update_arbiter_info(account, deal_quantity, false);
+
     } else {
         // end deal - finished
         auto stake_quantity = _calc_order_stakes(deal_quantity);
@@ -776,6 +778,7 @@ void otcbook::closearbit(const name& account, const uint64_t& deal_id, const uin
 
         TRANSFER(_conf().stake_assets_contract.at(stake_quantity.symbol), order_taker, 
         stake_quantity, "arbit fine: "+to_string(deal_id));
+        _update_arbiter_info(account, deal_quantity, true);
    }
 }
 
@@ -1069,15 +1072,16 @@ void otcbook::_transfer_usdt(name to, asset quantity, uint64_t deal_id) {
 }
 
 
-void otcbook::addarbiter(const name& account) {
+void otcbook::addarbiter(const name& account, const string& email) {
     require_auth( _conf().managers.at(otc::manager_type::admin) );
 
     CHECKC(is_account(account), err::ACCOUNT_INVALID,  "account not existed: " +  account.to_string());
 
     auto arbiter = arbiter_t(account);
     CHECKC( !_dbc.get(arbiter), err::RECORD_EXISTING, "arbiter already exists: " + account.to_string() );
-
+    arbiter.email = email;
     _dbc.set( arbiter, get_self());
+
     _gstate.arbiter_count = _gstate.arbiter_count + 1;
 }
 
@@ -1108,4 +1112,21 @@ void otcbook::_check_split_plan( const name& token_split_contract, const uint64_
     custody::split_plan_t::idx_t split_t( token_split_contract, scope.value );
     auto split_itr = split_t.find( token_split_plan_id );
     CHECKC( split_itr != split_t.end(), err::SYMBOL_MISMATCH,"token split plan not found, id:" + to_string(token_split_plan_id));
+}
+
+void otcbook::_update_arbiter_info( const name& account, const asset& quant, const bool& closed) {
+    require_auth( _conf().managers.at(otc::manager_type::admin) );
+
+    auto arbiter = arbiter_t(account);
+    CHECKC( _dbc.get(arbiter), err::RECORD_EXISTING, "arbiter not found: " + account.to_string() );
+    if ( closed ) {
+        arbiter.closed_case_num  = arbiter.closed_case_num + 1;
+    } else {
+        arbiter.failed_case_num  = arbiter.failed_case_num + 1;
+    }
+
+    if(quant.symbol == MUSDT_SYMBOL) {
+        arbiter.total_quant += quant;
+    }
+
 }
