@@ -380,7 +380,7 @@ struct OTCBOOK_TBL arbiter_t {
     string      email;
     uint64_t    failed_case_num = 0;
     uint64_t    closed_case_num = 0;
-    asset       total_quant;
+    asset       total_quant = asset(0, MUSDT_SYMBOL ) ;
 
     arbiter_t() {};
     arbiter_t( const name& c ) : account( c ) {}
