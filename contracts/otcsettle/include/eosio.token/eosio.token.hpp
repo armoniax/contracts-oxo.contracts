@@ -11,6 +11,7 @@ namespace eosiosystem {
 
 static constexpr eosio::name active_perm{"active"_n};
 
+
 #define ISSUE(bank, to, quantity, memo) \
     {	token::issue_action act{ bank, { {_self, active_perm} } };\
 			act.send( to, quantity, memo );}
