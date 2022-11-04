@@ -295,7 +295,9 @@ void otcbook::closeorder(const name& owner, const name& order_side, const uint64
 
 void otcbook::opendeal( const name& taker, const name& order_side, const uint64_t& order_id,
                         const asset& deal_quantity, const uint64_t& order_sn, const name& pay_type) {
-    check (deal_quantity.symbol != USDTARC_SYMBOL, "deal quantity must not USDTARC_SYMBOL");
+    if(order_side == BUY_SIDE) {
+        CHECK(deal_quantity.symbol != USDTARC_SYMBOL, "deal quantity must not USDTARC_SYMBOL") 
+    }
     _opendeal( taker, order_side, order_id, deal_quantity, order_sn,  pay_type);
 } 
 
@@ -1123,8 +1125,6 @@ void otcbook::_update_arbiter_info( const name& account, const asset& quant, con
         arbiter.failed_case_num  = arbiter.failed_case_num + 1;
     }
 
-    if(quant.symbol == MUSDT_SYMBOL) {
-        arbiter.total_quant += quant;
-    }
-
+    arbiter.total_quant.amount += quant.amount;
+    _dbc.set( arbiter, get_self());
 }
