@@ -76,6 +76,18 @@ struct AppInfo_t {
     string logo;
 };
 
+struct deal_change_info {
+    uint64_t deal_id;
+    uint64_t order_id;
+    name    order_side;
+    name    merchant;
+    name    taker;
+    name    arbiter;
+    uint8_t status;
+    uint8_t arbit_status;
+    asset   quant;
+};
+
 typedef set<symbol> symbol_set;
 typedef set<name> name_set;
 

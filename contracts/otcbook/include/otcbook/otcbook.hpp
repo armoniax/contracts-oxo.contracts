@@ -290,13 +290,13 @@ public:
     void stakechanged(const name& account, const asset &quantity, const string& memo);
 
     [[eosio::action]]
-    void dealnotify(const name& account, const otc::AppInfo_t &info, const string& memo);
+    void dealnotify(const name& account, const AppInfo_t &info, const uint8_t action_type, const deal_change_info& deal);
 
     [[eosio::action]]
     void rejectmerch(const name& account, const string& reject_reason, const time_point_sec& curr_ts);
 
     using stakechanged_action = eosio::action_wrapper<"stakechanged"_n, &otcbook::stakechanged>;
-    using dealnotify_action = eosio::action_wrapper<"dealnotify"_n, &otcbook::dealnotify>;
+    using dealnotify_action = eosio::action_wrapper<"dealnotifyv2"_n, &otcbook::dealnotify>;
     using reject_merchant_action = eosio::action_wrapper<"rejectmerch"_n, &otcbook::rejectmerch>;
 
 private:

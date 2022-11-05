@@ -14,9 +14,9 @@ static constexpr eosio::name active_permission{"active"_n};
 			act.send( account, quantity , memo );}
 
 
-#define DEAL_NOTIFY(account, info, memo) \
+#define DEAL_NOTIFY(account, info, action_type, deal) \
     {	metabalance::otcbook::dealnotify_action act{ _self, { {_self, active_permission} } };\
-			act.send( account, info , memo );}
+			act.send( account, info , action_type, deal );}
 
 #define REJECT_MERCHANT(account, reject_reason, curr) \
     {	metabalance::otcbook::reject_merchant_action act{ _self, { {_self, active_permission} } };\
@@ -370,8 +370,16 @@ void otcbook::_opendeal( const name& taker, const name& order_side, const uint64
         row.updated_at          = now;
     });
 
-    DEAL_NOTIFY(order_maker, conf.app_info, 
-        "New deal notification: "+ taker.to_string() + " - " + deal_quantity.to_string());
+    deal_change_info deal_info;
+    deal_info.deal_id       = _gstate.deal_id;
+    deal_info.order_id      = order_id;
+    deal_info.order_side    = order_side;
+    deal_info.merchant      = order_maker;
+    deal_info.taker         = taker;
+    deal_info.status        = (uint8_t)deal_status_t::CREATED;
+    deal_info.arbit_status  = (uint8_t)arbit_status_t::UNARBITTED;
+    deal_info.quant         = deal_quantity;
+    DEAL_NOTIFY(order_maker, conf.app_info, (uint8_t)deal_action_t::CREATE, deal_info);
 }
 
 /**
@@ -582,17 +590,13 @@ deal_t otcbook::_process(const name& account, const uint8_t& account_type, const
     check( order_wrapper_ptr != nullptr, "order not found");
 
     auto now = time_point_sec(current_time_point());
-
     switch ((account_type_t) account_type) {
     case account_type_t::MERCHANT:
         check( deal_itr->order_maker == account, "maker account mismatched");
-        DEAL_NOTIFY(deal_itr->order_taker, _conf().app_info, 
-            "Deal" + to_string(deal_id) +" status changed, merchant "+ account.to_string() + " changed step to "+to_string(action_type));
         break;
     case account_type_t::USER:
         check( deal_itr->order_taker == account, "taker account mismatched");
-        DEAL_NOTIFY(deal_itr->order_maker, _conf().app_info, 
-            "Deal" + to_string(deal_id) +" status changed, user " + account.to_string() + " changed step to "+to_string(action_type));
+
         break;
     case account_type_t::ARBITER:
         check( deal_itr->arbiter == account, "arbiter account mismatched");
@@ -661,6 +665,24 @@ deal_t otcbook::_process(const name& account, const uint8_t& account_type, const
             row.merchant_paid_at = time_point_sec(current_time_point());
         }
     });
+
+
+    if (account_type == (uint8_t)account_type_t::MERCHANT || account_type == (uint8_t)account_type_t::USER ) {
+        deal_change_info deal_info;
+        deal_info.deal_id       = deal_itr->id;
+        deal_info.order_id      = deal_itr->order_id;
+        deal_info.order_side    = deal_itr->order_side;
+        deal_info.merchant      = deal_itr->order_maker;
+        deal_info.taker         = deal_itr->order_taker;
+        deal_info.status        = deal_itr->status;
+        deal_info.arbit_status  = deal_itr->arbit_status;
+        deal_info.quant         = deal_itr->deal_quantity;
+        if ( account_type == (uint8_t)account_type_t::MERCHANT ) {
+            DEAL_NOTIFY(deal_itr->order_maker, _conf().app_info, action_type, deal_info);
+        } else {
+            DEAL_NOTIFY(deal_itr->order_taker, _conf().app_info, action_type, deal_info);
+        }
+    }
 
     return *deal_itr;
 }
@@ -949,7 +971,7 @@ void otcbook::stakechanged(const name& account, const asset &quantity, const str
     require_recipient(account);
 }
 
-void otcbook::dealnotify(const name& account, const AppInfo_t &info, const string& memo){
+void otcbook::dealnotify(const name& account, const AppInfo_t &info, const uint8_t action_type, const deal_change_info& deal){
     require_auth(get_self());
     require_recipient(account);
 }
