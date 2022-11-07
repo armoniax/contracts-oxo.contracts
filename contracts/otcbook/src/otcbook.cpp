@@ -971,7 +971,7 @@ void otcbook::stakechanged(const name& account, const asset &quantity, const str
     require_recipient(account);
 }
 
-void otcbook::dealnotify(const name& account, const AppInfo_t &info, const uint8_t action_type, const deal_change_info& deal){
+void otcbook::dealnotifyv2(const name& account, const AppInfo_t &info, const uint8_t action_type, const deal_change_info& deal){
     require_auth(get_self());
     require_recipient(account);
 }
