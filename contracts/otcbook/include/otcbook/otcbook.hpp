@@ -89,7 +89,7 @@ public:
      * @param by_force if true, it updates
      */
     [[eosio::action]]
-    void setmerchant( const merchant_info& mi, const bool& by_force );
+    void setmerchant( const merchant_info& mi);
 
     [[eosio::action]]
     void remerchant( const merchant_info& mi);
