@@ -87,6 +87,8 @@ void otcbook::setmerchant( const merchant_info& mi ) {
     check(mi.email.size() < 64, "email size too large: " + to_string(mi.email.size()) );
     check(mi.merchant_detail.size() < 255, "mechant detail size too large: " + to_string(mi.merchant_detail.size()) );
     check(mi.memo.size() < max_memo_size, "memo size too large: " + to_string(mi.memo.size()) );
+    check(mi.reject_reason.size() < 255, "reject reason size too large: " + to_string(mi.memo.size()) );
+
 
     auto merchant = merchant_t(mi.account);
 
