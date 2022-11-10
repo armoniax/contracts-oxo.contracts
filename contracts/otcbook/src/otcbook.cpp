@@ -79,7 +79,7 @@ void otcbook::setconf(const name &conf_contract, const name& token_split_contrac
     _conf(true);
 }
 
-void otcbook::setmerchant( const merchant_info& mi, const bool& by_force ) {
+void otcbook::setmerchant( const merchant_info& mi ) {
     CHECKC( has_auth(_conf().managers.at(otc::manager_type::admin)), err::NO_AUTH, "neither admin nor merchant" )
 
     check(is_account(mi.account), "account invalid: " + mi.account.to_string());
@@ -87,10 +87,10 @@ void otcbook::setmerchant( const merchant_info& mi, const bool& by_force ) {
     check(mi.email.size() < 64, "email size too large: " + to_string(mi.email.size()) );
     check(mi.merchant_detail.size() < 255, "mechant detail size too large: " + to_string(mi.merchant_detail.size()) );
     check(mi.memo.size() < max_memo_size, "memo size too large: " + to_string(mi.memo.size()) );
+    check(mi.reject_reason.size() < 255, "reject reason size too large: " + to_string(mi.memo.size()) );
+
 
     auto merchant = merchant_t(mi.account);
-    auto found = _dbc.get(merchant);
-    CHECKC( by_force || !found, err::RECORD_EXISTING, "not by-force while merchant existing: " + mi.account.to_string() )
 
     merchant.state = mi.status;
     merchant.updated_at = current_time_point();
