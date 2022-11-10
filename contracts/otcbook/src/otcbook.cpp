@@ -574,7 +574,9 @@ void otcbook::canceldeal(const name& account, const uint8_t& account_type, const
         row.updated_at = time_point_sec(current_time_point());
     });
     
-    if (deal_itr->deal_quantity.symbol == MUSDT_SYMBOL && deal_itr->order_side == BUY_SIDE) {
+    if (deal_itr->deal_quantity.symbol == USDTARC_SYMBOL && deal_itr->order_side == BUY_SIDE) {
+        auto deal_quantity = deal_itr->deal_quantity;
+        deal_quantity.symbol = MUSDT_SYMBOL;
         _transfer_usdt(deal_itr->order_maker, deal_itr->deal_quantity, deal_itr->id);
     }
 }
