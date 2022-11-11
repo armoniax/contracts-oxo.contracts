@@ -91,7 +91,7 @@ void otcbook::setmerchant( const merchant_info& mi ) {
 
     auto merchant = merchant_t(mi.account);
     auto found = _dbc.get(merchant);
-    CHECKC( !found, err::RECORD_EXISTING, "merchant not existing: " + mi.account.to_string() )
+    CHECKC( found, err::RECORD_EXISTING, "merchant not existing: " + mi.account.to_string() )
     
     merchant.state = mi.status;
     merchant.updated_at = current_time_point();
