@@ -89,9 +89,10 @@ void otcbook::setmerchant( const merchant_info& mi ) {
     check(mi.memo.size() < max_memo_size, "memo size too large: " + to_string(mi.memo.size()) );
     check(mi.reject_reason.size() < 255, "reject reason size too large: " + to_string(mi.memo.size()) );
 
-
     auto merchant = merchant_t(mi.account);
-
+    auto found = _dbc.get(merchant);
+    CHECKC( !found, err::RECORD_EXISTING, "merchant not existing: " + mi.account.to_string() )
+    
     merchant.state = mi.status;
     merchant.updated_at = current_time_point();
 
