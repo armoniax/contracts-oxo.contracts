@@ -89,9 +89,10 @@ void otcbook::setmerchant( const merchant_info& mi ) {
     check(mi.memo.size() < max_memo_size, "memo size too large: " + to_string(mi.memo.size()) );
     check(mi.reject_reason.size() < 255, "reject reason size too large: " + to_string(mi.memo.size()) );
 
-
     auto merchant = merchant_t(mi.account);
-
+    auto found = _dbc.get(merchant);
+    CHECKC( !found, err::RECORD_EXISTING, "merchant not existing: " + mi.account.to_string() )
+    
     merchant.state = mi.status;
     merchant.updated_at = current_time_point();
 
@@ -577,7 +578,7 @@ void otcbook::canceldeal(const name& account, const uint8_t& account_type, const
     if (deal_itr->deal_quantity.symbol == USDTARC_SYMBOL && deal_itr->order_side == BUY_SIDE) {
         auto deal_quantity = deal_itr->deal_quantity;
         deal_quantity.symbol = MUSDT_SYMBOL;
-        _transfer_usdt(deal_itr->order_maker, deal_itr->deal_quantity, deal_itr->id);
+        _transfer_usdt(deal_itr->order_taker, deal_quantity, deal_itr->id);
     }
 }
 
