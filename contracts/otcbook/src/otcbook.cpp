@@ -89,7 +89,7 @@ void otcbook::setadmin( const name& account, const bool& to_add) {
     if (found)
         _dbc.del( admin );
     else 
-        _dbc.set( admin );
+        _dbc.set( admin, _self );
 }
 
 void otcbook::setmerchant( const name& sender, const merchant_info& mi ) {
