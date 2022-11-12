@@ -70,7 +70,6 @@ public:
 
     ~otcbook() {
         _global.set( _gstate, get_self() );
-        // _global2.set( _gstate2, get_self() );
     }
 
     /**
@@ -78,9 +77,8 @@ public:
      * @param conf_contract conf contract
      * @note require admin auth
      */
-    [[eosio::action]]
-    void setconf(const name &conf_contract, const name& token_split_contract, const uint64_t& token_split_plan_id );
-
+    ACTION setconf(const name &conf_contract, const name& token_split_contract, const uint64_t& token_split_plan_id );
+    ACTION setadmin( const name& admin, const bool& to_add);
     ACTION delmerchant( const name& merchant_acct );
 
     /**
@@ -89,7 +87,7 @@ public:
      * @param by_force if true, it updates
      */
     [[eosio::action]]
-    void setmerchant( const merchant_info& mi);
+    void setmerchant( const name& sender, const merchant_info& mi);
 
     [[eosio::action]]
     void remerchant( const merchant_info& mi);
@@ -346,6 +344,8 @@ private:
                         const asset& deal_quantity, const uint64_t& order_sn, const name& pay_type);
     
     void _update_arbiter_info( const name& account, const asset& quant, const bool& closed);
+
+    void _require_admin(const name& account);
     
 };
 

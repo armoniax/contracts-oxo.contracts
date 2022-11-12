@@ -79,8 +79,22 @@ void otcbook::setconf(const name &conf_contract, const name& token_split_contrac
     _conf(true);
 }
 
-void otcbook::setmerchant( const merchant_info& mi ) {
-    CHECKC( has_auth(_conf().managers.at(otc::manager_type::admin)), err::NO_AUTH, "neither admin nor merchant" )
+void otcbook::setadmin( const name& account, const bool& to_add) {
+    require_auth( _self );
+
+    auto admin = admin_t( account );
+    auto found = _dbc.get( admin );
+    CHECKC( found && !to_add || !found && to_add, err::PARAM_ERROR, "wrong params" )
+
+    if (found)
+        _dbc.del( admin );
+    else 
+        _dbc.set( admin );
+}
+
+void otcbook::setmerchant( const name& sender, const merchant_info& mi ) {
+    // CHECKC( has_auth(_conf().managers.at(otc::manager_type::admin)), err::NO_AUTH, "neither admin nor merchant" )
+    _require_admin( sender );
 
     check(is_account(mi.account), "account invalid: " + mi.account.to_string());
     check(mi.merchant_name.size() < 32, "merchant_name size too large: " + to_string(mi.merchant_name.size()) );
@@ -963,7 +977,7 @@ const otcbook::conf_t& otcbook::_conf(bool refresh/* = false*/) {
     if (!_conf_ptr || refresh) {
         CHECK(_gstate.conf_contract.value != 0, "Invalid conf_table");
         _conf_tbl_ptr = make_unique<conf_table_t>(_gstate.conf_contract, _gstate.conf_contract.value);
-        CHECK(_conf_tbl_ptr->exists(), "conf table not existed in contract: " + _gstate.conf_contract.to_string());
+        CHECK(_conf_tbl_ptr->exists(), "conf table not found in contract: " + _gstate.conf_contract.to_string());
         _conf_ptr = make_unique<conf_t>(_conf_tbl_ptr->get());
     }
     return *_conf_ptr;
@@ -1152,4 +1166,11 @@ void otcbook::_update_arbiter_info( const name& account, const asset& quant, con
 
     arbiter.total_quant.amount += quant.amount;
     _dbc.set( arbiter, get_self());
+}
+
+void otcbook::_require_admin(const name& account) {
+    require_auth( account );
+
+    auto admin = admin_t( account );
+    CHECKC( _dbc.get( admin ), err::RECORD_NOT_FOUND, "not admin: " + account.to_string() )
 }

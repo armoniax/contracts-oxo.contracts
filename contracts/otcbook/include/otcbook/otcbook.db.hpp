@@ -187,6 +187,21 @@ struct OTCBOOK_TBL merchant_t {
                                   (email)(memo)(state)(assets)(updated_at) )
 };
 
+///Scope: _self.v
+struct OTCBOOK_TBL admin_t {
+    name account;
+
+    admin_t() {}
+    admin_t(const name& a): account(a) {}
+
+    uint64_t primary_key()const { return account.value; }
+    typedef eosio::multi_index
+    < "admins"_n,  admin_t
+    > idx_t;
+
+    EOSLIB_SERIALIZE( admin_t, (account) )
+};
+
 /**
  * Generic order struct for maker(merchant)
  * when the owner decides to close it before complete fulfillment, it just get erased
