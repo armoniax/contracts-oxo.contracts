@@ -143,8 +143,8 @@ void otcbook::remerchant( const merchant_info& mi) {
     _dbc.set( merchant, get_self() );
 }
 
-void otcbook::delmerchant( const name& merchant_acct ) {
-    require_auth( _conf().managers.at(otc::manager_type::admin) );
+void otcbook::delmerchant( const name& sender, const name& merchant_acct ) {
+    _require_admin( sender );
 
     auto merchant = merchant_t( merchant_acct );
     CHECKC( _dbc.get(merchant), err::RECORD_NOT_FOUND, "merchant not found: " + merchant_acct.to_string() )

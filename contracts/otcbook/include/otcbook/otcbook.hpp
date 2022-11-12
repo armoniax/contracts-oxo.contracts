@@ -79,18 +79,16 @@ public:
      */
     ACTION setconf(const name &conf_contract, const name& token_split_contract, const uint64_t& token_split_plan_id );
     ACTION setadmin( const name& admin, const bool& to_add);
-    ACTION delmerchant( const name& merchant_acct );
-
+    
     /**
      * set merchant
      * @param merchant_info merchant info
      * @param by_force if true, it updates
      */
-    [[eosio::action]]
-    void setmerchant( const name& sender, const merchant_info& mi);
-
-    [[eosio::action]]
-    void remerchant( const merchant_info& mi);
+    ACTION setmerchant( const name& sender, const merchant_info& mi);
+    ACTION delmerchant( const name& sender, const name& merchant_acct );
+    
+    ACTION remerchant( const merchant_info& mi);
 
     /**
      * open order by merchant
