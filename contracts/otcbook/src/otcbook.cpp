@@ -736,7 +736,8 @@ void otcbook::startarbit(const name& account, const uint8_t& account_type, const
         break;
     }
 
-    auto  arbiter = _rand_arbiter( deal_id );
+    auto arbiter = name(0);
+    _rand_arbiter( deal_id, arbiter );
     auto status = (deal_status_t)deal_itr->status;
     auto arbit_status = (arbit_status_t)deal_itr->arbit_status;
     check( arbit_status == arbit_status_t::UNARBITTED, "arbit already started: " + to_string(deal_id) );
@@ -1136,17 +1137,17 @@ void otcbook::delarbiter(const name& account) {
     _gstate.arbiter_count = _gstate.arbiter_count - 1;
 }
 
-name otcbook::_rand_arbiter( const uint64_t deal_id ) {
+void otcbook::_rand_arbiter( const uint64_t deal_id, name& arbiter ) {
 
     uint64_t rand = deal_id % _gstate.arbiter_count;
 
     arbiter_t::idx_t arbiter_idx( get_self(), get_self().value);
     auto itr = arbiter_idx.begin();
     if (rand > 0) {
-        advance( itr , rand );
+        advance( itr, rand );
     }
     
-    return itr->account;
+    arbiter = itr->account;
 }
 
 void otcbook::_check_split_plan( const name& token_split_contract, const uint64_t& token_split_plan_id, const name& scope ) {

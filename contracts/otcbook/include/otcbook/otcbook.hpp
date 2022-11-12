@@ -323,7 +323,6 @@ private:
     */
     void _transfer_open_deal(name from, asset quantity, vector<string_view> memo_params);
 
-
     void _transfer_process_deal(name from, asset quantity, vector<string_view> memo_params);
 
     /**
@@ -331,10 +330,9 @@ private:
     */
     void _transfer_close_deal(name from, asset quantity, vector<string_view> memo_params);
 
-
     void _transfer_usdt(name to, asset quantity, uint64_t deal_id);
 
-    name _rand_arbiter( const uint64_t deal_id );
+    void _rand_arbiter( const uint64_t deal_id, name& arbiter );
 
     void _check_split_plan( const name& token_split_contract, const uint64_t& token_split_plan_id, const name& scope );
 
