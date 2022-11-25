@@ -107,7 +107,7 @@ void otcbook::setmerchant( const name& sender, const merchant_info& mi ) {
     auto found = _dbc.get(merchant);
     CHECKC( found, err::RECORD_EXISTING, "merchant not existing: " + mi.account.to_string() )
     
-    merchant.state = mi.status;
+    merchant.status = mi.status;
     merchant.updated_at = current_time_point();
 
     if ( mi.merchant_name.length() > 0 )   merchant.merchant_name      = mi.merchant_name;
@@ -133,8 +133,8 @@ void otcbook::remerchant( const merchant_info& mi) {
     auto merchant = merchant_t(mi.account);
     auto found = _dbc.get(merchant);
     CHECKC( found, err::RECORD_EXISTING, "merchant not found: " + mi.account.to_string() )
-    CHECKC( merchant.state == (uint8_t)merchant_status_t::REJECT &&  mi.status == (uint8_t)merchant_status_t::REGISTERED, err::NO_AUTH, "merchant status is not reject.")
-    merchant.state = (uint8_t)merchant_status_t::REGISTERED;
+    CHECKC( merchant.status == (uint8_t)merchant_status_t::REJECT &&  mi.status == (uint8_t)merchant_status_t::REGISTERED, err::NO_AUTH, "merchant status is not reject.")
+    merchant.status = (uint8_t)merchant_status_t::REGISTERED;
     merchant.updated_at = current_time_point();
     if ( mi.merchant_name.length() > 0 )   merchant.merchant_name      = mi.merchant_name;
     if ( mi.merchant_detail.length() > 0 ) merchant.merchant_detail    = mi.merchant_detail;
@@ -190,7 +190,7 @@ void otcbook::openorder(const name& owner, const name& order_side, const set<nam
 
     merchant_t merchant(owner);
     check( _dbc.get(merchant), "merchant not found: " + owner.to_string() );
-    check((merchant_status_t)merchant.state >= merchant_status_t::BASIC,
+    check((merchant_status_t)merchant.status >= merchant_status_t::BASIC,
         "merchant not enabled");
 
     auto stake_frozen = _calc_order_stakes(va_quantity); // TODO: process 70% used-rate of stake
@@ -891,7 +891,7 @@ void otcbook::withdraw(const name& owner, asset quantity){
 
     merchant_t merchant(owner);
     check( _dbc.get(merchant), "merchant not found: " + owner.to_string() );
-    auto state = (merchant_status_t)merchant.state;
+    auto state = (merchant_status_t)merchant.status;
     check(state >= merchant_status_t::BASIC || state == merchant_status_t::DISABLED,
     "merchant not enabled");
 
@@ -958,7 +958,7 @@ void otcbook::_deposit(name from, name to, asset quantity, string memo) {
                                                 + _conf().stake_assets_contract.at(quantity.symbol).to_string() );
     merchant_t merchant(from);
     check(_dbc.get( merchant ),"merchant is not set, from:" + from.to_string()+ ",to:" + to.to_string());
-    check((merchant_status_t)merchant.state >= merchant_status_t::BASIC,
+    check((merchant_status_t)merchant.status >= merchant_status_t::BASIC,
         "merchant not enabled");
     _add_balance(merchant, quantity, "merchant deposit");
 }
@@ -1072,7 +1072,7 @@ void otcbook::_merchant_apply(name from, asset quantity, vector<string_view> mem
     merchant.merchant_name = merchant_name;
     merchant.merchant_detail = merchant_detail;
     merchant.email = email;
-    merchant.state = (uint8_t)merchant_status_t::REGISTERED;
+    merchant.status = (uint8_t)merchant_status_t::REGISTERED;
     _add_balance(merchant, quantity, "merchant deposit");
     _dbc.set(merchant, get_self());
 }
