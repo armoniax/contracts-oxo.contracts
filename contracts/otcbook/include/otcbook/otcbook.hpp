@@ -274,10 +274,10 @@ public:
     void setblacklist(const name& account, uint64_t duration_second);
 
     [[eosio::action]]
-    void addarbiter(const name& account, const string& email);
+    void addarbiter(const name& sender, const name& account, const string& email);
 
     [[eosio::action]]
-    void delarbiter(const name& account);
+    void delarbiter(const name& sender, const name& account);
 
     // [[eosio::action]]
     // void timeoutdeal();

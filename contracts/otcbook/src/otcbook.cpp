@@ -1114,8 +1114,8 @@ void otcbook::_transfer_usdt(name to, asset quantity, uint64_t deal_id) {
 }
 
 
-void otcbook::addarbiter(const name& account, const string& email) {
-    require_auth( _conf().managers.at(otc::manager_type::admin) );
+void otcbook::addarbiter(const name& sender, const name& account, const string& email) {
+    _require_admin( sender );
 
     CHECKC(is_account(account), err::ACCOUNT_INVALID,  "account not existed: " +  account.to_string());
 
@@ -1127,8 +1127,8 @@ void otcbook::addarbiter(const name& account, const string& email) {
     _gstate.arbiter_count = _gstate.arbiter_count + 1;
 }
 
-void otcbook::delarbiter(const name& account) {
-    require_auth( _conf().managers.at(otc::manager_type::admin) );
+void otcbook::delarbiter(const name& sender, const name& account) {
+    _require_admin( sender );
 
     auto arbiter = arbiter_t(account);
     CHECKC( _dbc.get(arbiter), err::RECORD_EXISTING, "arbiter not found: " + account.to_string() );
