@@ -695,9 +695,9 @@ deal_t otcbook::_process(const name& account, const uint8_t& account_type, const
         deal_info.arbit_status  = deal_itr->arbit_status;
         deal_info.quant         = deal_itr->deal_quantity;
         if ( account_type == (uint8_t)account_type_t::MERCHANT ) {
-            DEAL_NOTIFY(deal_itr->order_maker, _conf().app_info, action_type, deal_info);
-        } else {
             DEAL_NOTIFY(deal_itr->order_taker, _conf().app_info, action_type, deal_info);
+        } else {
+            DEAL_NOTIFY(deal_itr->order_maker, _conf().app_info, action_type, deal_info);
         }
     }
 
