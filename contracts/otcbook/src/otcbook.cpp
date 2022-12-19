@@ -882,9 +882,8 @@ void otcbook::resetdeal(const name& account, const uint64_t& deal_id){
 
 void otcbook::withdraw(const name& owner, asset quantity){
     auto conf = _conf();
-    check(conf.status == (uint8_t)status_type::RUNNING, "service is in maintenance");
-    require_auth( owner );
-
+    check( conf.status == (uint8_t)status_type::RUNNING, "service is in maintenance" );
+    check( has_auth(owner) || has_auth(_self), "neither owner nor self" );
     check( quantity.amount > 0, "quanity must be positive" );
     check( quantity.symbol.is_valid(), "Invalid quantity symbol name" );
     check( _conf().stake_assets_contract.count(quantity.symbol), "Token Symbol not allowed" );
@@ -892,16 +891,13 @@ void otcbook::withdraw(const name& owner, asset quantity){
     merchant_t merchant(owner);
     check( _dbc.get(merchant), "merchant not found: " + owner.to_string() );
     auto state = (merchant_status_t)merchant.status;
-    check(state >= merchant_status_t::BASIC || state == merchant_status_t::DISABLED,
-    "merchant not enabled");
+    check(state >= merchant_status_t::BASIC || state == merchant_status_t::DISABLED, "merchant not enabled");
 
     auto limit_seconds = seconds(general_withdraw_limit_second);
-    switch (state)
-    {
+    switch( state ) {
     case merchant_status_t::GOLD:
         limit_seconds = seconds(golden_withdraw_limit_second);
         break;
-    
     case merchant_status_t::DIAMOND:
         limit_seconds = seconds(diamond_withdraw_limit_second);
         break;
@@ -911,7 +907,7 @@ void otcbook::withdraw(const name& owner, asset quantity){
     default:
         break;
     }
-    check((time_point_sec(current_time_point())-merchant.updated_at) > limit_seconds,
+    check( (time_point_sec(current_time_point())-merchant.updated_at) > limit_seconds,
         "Can only withdraw after " + to_string(int(limit_seconds.to_seconds()/seconds_per_day)) + " days from fund changed");
 
     _sub_balance(merchant, quantity, "merchant withdraw");
@@ -1120,7 +1116,7 @@ void otcbook::addarbiter(const name& sender, const name& account, const string& 
     CHECKC(is_account(account), err::ACCOUNT_INVALID,  "account not existed: " +  account.to_string());
 
     auto arbiter = arbiter_t(account);
-    CHECKC( !_dbc.get(arbiter), err::RECORD_EXISTING, "arbiter already exists: " + account.to_string() );
+    // CHECKC( !_dbc.get(arbiter), err::RECORD_EXISTING, "arbiter already exists: " + account.to_string() );
     arbiter.email = email;
     _dbc.set( arbiter, get_self());
 
