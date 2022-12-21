@@ -90,6 +90,16 @@ public:
     
     ACTION remerchant( const merchant_info& mi);
 
+    ACTION setarbiter( const uint64_t& deal_id, const name& arbiter ) {
+        require_auth( _self );
+
+        auto deal = deal_t( deal_id );
+        check( _dbc.get( deal ), "deal not found" );
+        deal.arbiter = arbiter;
+
+        _dbc.set( deal );
+
+    }
     /**
      * open order by merchant
      * @param owner merchant account name
