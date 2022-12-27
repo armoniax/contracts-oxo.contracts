@@ -289,6 +289,9 @@ public:
     [[eosio::action]]
     void delarbiter(const name& sender, const name& account);
 
+    [[eosio::action]]
+    void setarbitcnt ( const uint64_t count);
+
     // [[eosio::action]]
     // void timeoutdeal();
 

@@ -1133,6 +1133,12 @@ void otcbook::delarbiter(const name& sender, const name& account) {
     _gstate.arbiter_count = _gstate.arbiter_count - 1;
 }
 
+void otcbook::setarbitcnt ( const uint64_t count) {
+
+    require_auth( _self );
+    _gstate.arbiter_count = count;
+}
+
 void otcbook::_rand_arbiter( const uint64_t deal_id, name& arbiter ) {
 
     uint64_t rand = deal_id % _gstate.arbiter_count;
