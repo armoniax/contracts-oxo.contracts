@@ -574,6 +574,15 @@ void otcbook::canceldeal(const name& account, const uint8_t& account_type, const
 
     check( (uint8_t)order.status != (uint8_t)order_status_t::CLOSED, "order already closed" );
 
+    auto order_status  = order.status;
+    auto limit_seconds = seconds(deal_expired_second);
+    if((account_type_t)account_type == account_type_t::USER) {
+        if ((((time_point_sec(current_time_point())) - deal_itr->updated_at) > limit_seconds )  
+            && (order.status == (uint8_t)order_status_t::RUNNING )){
+            order_status = (uint8_t)order_status_t::PAUSED;
+        }
+    }
+
     deals.modify( *deal_itr, _self, [&]( auto& row ) {
             row.arbit_status = (uint8_t)arbit_status_t::UNARBITTED;
             row.status = (uint8_t)deal_status_t::CANCELLED;
@@ -584,14 +593,6 @@ void otcbook::canceldeal(const name& account, const uint8_t& account_type, const
 
     auto deal_quantity = deal_itr->deal_quantity;
 
-    auto order_status  = order.status;
-    auto limit_seconds = seconds(deal_expired_second);
-    if((account_type_t)account_type == account_type_t::USER) {
-        if ((((time_point_sec(current_time_point())) - deal_itr->updated_at) > limit_seconds )  
-            && (order.status == (uint8_t)order_status_t::RUNNING )){
-            order_status = (uint8_t)order_status_t::PAUSED;
-        }
-    }
 
     // finished deal-canceled
     order_wrapper_ptr->modify(_self, [&]( auto& row ) {
