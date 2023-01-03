@@ -583,10 +583,20 @@ void otcbook::canceldeal(const name& account, const uint8_t& account_type, const
         });
 
     auto deal_quantity = deal_itr->deal_quantity;
+
+    auto deal_status  = deal_itr->status;
+    auto limit_seconds = seconds(deal_expired_second);
+    if((account_type_t)account_type == account_type_t::USER) {
+        if (((time_point_sec(current_time_point())) - deal_itr->updated_at) > limit_seconds ) {
+            deal_status = (uint8_t)order_status_t::PAUSED;
+        }
+    }
+
     // finished deal-canceled
     order_wrapper_ptr->modify(_self, [&]( auto& row ) {
         row.va_frozen_quantity -= deal_quantity;
         row.updated_at = time_point_sec(current_time_point());
+        row.status = deal_status;
     });
     
     if (deal_itr->deal_quantity.symbol == USDTARC_SYMBOL && deal_itr->order_side == BUY_SIDE) {
