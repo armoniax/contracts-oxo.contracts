@@ -38,6 +38,7 @@ static constexpr uint64_t max_memo_size     = 256;
 static constexpr uint64_t seconds_per_day                   = 24 * 3600;
 static constexpr uint64_t seconds_per_year                  = 365 * seconds_per_day;
 static constexpr uint64_t max_blacklist_duration_second     = 100 * seconds_per_year; // 100 year
+static constexpr uint64_t deal_expired_second               = 30 * 60;
 
 constexpr eosio::name MBANK                     = "amax.mtoken"_n;
 
