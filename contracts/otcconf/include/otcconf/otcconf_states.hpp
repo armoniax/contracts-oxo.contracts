@@ -185,4 +185,50 @@ struct [[eosio::table("global"), eosio::contract("otcconf")]] global_t {
 };
 typedef eosio::singleton< "global"_n, global_t > global_singleton;
 
+
+struct CONTRACT_TBL country_conf_t {
+
+    name    country_name;
+    uint8_t status = 0;
+    AppInfo_t app_info;
+    map<name,name> managers;
+
+    // for book config
+    set<name> pay_type;
+    symbol fiat_type;
+    uint64_t fee_pct;
+    map<symbol, name> stake_assets_contract; //get the contract 
+    map<symbol, symbol> coin_as_stake;  //get stake asset for a coin
+    symbol_set buy_coins_conf;  //crypto coins that OTC merchants can buy in orders
+    symbol_set sell_coins_conf; //crypto coins that OTC merchants can sell in orders
+    uint64_t accepted_timeout;
+    uint64_t payed_timeout;
+
+    // for settle config
+    vector<settle_level_config> settle_levels;
+    map <symbol_code, uint32_t> farm_scales;
+    uint64_t farm_lease_id = 0;       //aplink.farm lease ID
+
+    // for swap config
+    vector<swap_step_config> swap_steps;
+
+    country_conf_t() {}
+    country_conf_t( const name& cname ):country_name(cname) {}
+    
+    uint64_t primary_key()const { return country_name.value ; }
+
+    EOSLIB_SERIALIZE( country_conf_t, (country_name)(status)(app_info)(managers)
+                                (pay_type)(fiat_type)(fee_pct)
+                                (stake_assets_contract)(coin_as_stake)
+                                (buy_coins_conf)(sell_coins_conf)
+                                (accepted_timeout)(payed_timeout)
+                                (settle_levels)
+                                (farm_scales)(farm_lease_id)
+                                (swap_steps) )
+
+    typedef eosio::multi_index < "countryconf"_n,  country_conf_t> idx_t;
+
+};
+
+
 } // OTC

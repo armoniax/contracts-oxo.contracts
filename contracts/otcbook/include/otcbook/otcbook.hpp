@@ -51,6 +51,8 @@ private:
     dbc                 _dbc;
     global_singleton    _global;
     global_t            _gstate;
+    global_singleton1    _global1;
+    global1_t            _gstate1;
     std::unique_ptr<conf_table_t> _conf_tbl_ptr;
     std::unique_ptr<conf_t> _conf_ptr;
 
@@ -58,18 +60,15 @@ public:
     using contract::contract;
     otcbook(eosio::name receiver, eosio::name code, datastream<const char*> ds):
         _dbc(_self), contract(receiver, code, ds),
-        _global(_self, _self.value)/*, _global2(_self, _self.value) */
+        _global(_self, _self.value), _global1(_self, _self.value) 
     {
-        if (_global.exists()) {
-            _gstate = _global.get();
-        } else { // first init
-            _gstate = global_t{};
-        }
-        // _gstate2 = _global2.exists() ? _global2.get() : global2_t{};
+        _gstate = _global.exists() ? _global.get() : global_t{};
+        _gstate1 = _global1.exists() ? _global1.get() : global1_t{};
     }
 
     ~otcbook() {
-        _global.set( _gstate, get_self() );
+        _global.set( _gstate, get_self() ); 
+        _global1.set( _gstate1, get_self() ); 
     }
 
     /**
@@ -100,6 +99,12 @@ public:
         _dbc.set( deal );
 
     }
+
+    ACTION setcountry( const name& country_name){
+        require_auth( _self );
+        _gstate1.country_name = country_name;
+    }
+
     /**
      * open order by merchant
      * @param owner merchant account name
@@ -321,7 +326,7 @@ private:
 
     asset _calc_deal_amount(const asset &quantity);
 
-    const conf_t& _conf(bool refresh = false);
+    const country_conf_t& _conf(bool refresh = false);
 
     void _set_blacklist(const name& account, uint64_t duration_second, const name& payer);
 

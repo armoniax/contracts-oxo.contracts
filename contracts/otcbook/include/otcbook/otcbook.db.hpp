@@ -16,6 +16,7 @@
 namespace metabalance {
 
 using namespace std;
+
 using namespace eosio;
 
 #define SYMBOL(sym_code, precision) symbol(symbol_code(sym_code), precision)
@@ -31,7 +32,7 @@ static constexpr symbol   APLINK_SYMBOL         = SYMBOL("APL", 4);
 static constexpr eosio::name MT_BANK{"amax.mtoken"_n};
 
 
-static constexpr uint64_t percent_boost     = 10000;
+static uint64_t percent_boost     = 10000;
 static constexpr uint64_t order_stake_pct   = 10000; // 100%
 static constexpr uint64_t max_memo_size     = 256;
 
@@ -75,7 +76,14 @@ struct [[eosio::table("global"), eosio::contract("otcbook")]] global_t {
     EOSLIB_SERIALIZE( global_t, (conf_contract)(sell_order_id)(buy_order_id)(deal_id)(arbiter_count)(token_split_contract)(token_split_plan_id))
 };
 typedef eosio::singleton< "global"_n, global_t > global_singleton;
+struct [[eosio::table("global1"), eosio::contract("otcbook")]] global1_t
+{
+    
+    name                country_name = "cn"_n;
+    EOSLIB_SERIALIZE(global1_t, (country_name))
+};
 
+typedef eosio::singleton<"global1"_n, global1_t> global_singleton1;
 enum class account_type_t: uint8_t {
     NONE           = 0,
     ADMIN          = 1,

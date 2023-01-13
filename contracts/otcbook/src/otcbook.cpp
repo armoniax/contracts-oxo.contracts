@@ -982,14 +982,15 @@ void otcbook::setblacklist(const name& account, uint64_t duration_second) {
    _set_blacklist(account, duration_second, _conf().managers.at(otc::manager_type::admin));
 }
 
-const otcbook::conf_t& otcbook::_conf(bool refresh/* = false*/) {
-    if (!_conf_ptr || refresh) {
-        CHECK(_gstate.conf_contract.value != 0, "Invalid conf_table");
-        _conf_tbl_ptr = make_unique<conf_table_t>(_gstate.conf_contract, _gstate.conf_contract.value);
-        CHECK(_conf_tbl_ptr->exists(), "conf table not found in contract: " + _gstate.conf_contract.to_string());
-        _conf_ptr = make_unique<conf_t>(_conf_tbl_ptr->get());
-    }
-    return *_conf_ptr;
+const country_conf_t& otcbook::_conf(bool refresh/* = false*/) {
+    
+    CHECK(_gstate.conf_contract.value != 0, "Invalid conf_table");
+    CHECK(_gstate1.country_name.value != 0, "Invalid conf_table1");
+
+    country_conf_t::idx_t conf_tbl(_gstate.conf_contract,_gstate.conf_contract.value);
+    auto itr = conf_tbl.find(_gstate1.country_name.value);
+    CHECK( itr != conf_tbl.end(), "conf table not existed in contract: " + _gstate.conf_contract.to_string());
+    return conf_tbl.get(_gstate1.country_name.value);
 }
 
 void otcbook::stakechanged(const name& account, const asset &quantity, const string& memo){
