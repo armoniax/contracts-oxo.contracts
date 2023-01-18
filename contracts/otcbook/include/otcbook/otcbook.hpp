@@ -100,10 +100,10 @@ public:
 
     }
 
-    ACTION setcountry( const name& country_name){
-        require_auth( _self );
-        _gstate1.country_name = country_name;
-    }
+    // ACTION setfiatcode( const name& contract_name){
+    //     require_auth( _self );
+    //     _gstate1.fiat_code = fiat_code;
+    // }
 
     /**
      * open order by merchant
@@ -326,7 +326,7 @@ private:
 
     asset _calc_deal_amount(const asset &quantity);
 
-    const country_conf_t& _conf(bool refresh = false);
+    const fiat_conf_t& _conf(bool refresh = false);
 
     void _set_blacklist(const name& account, uint64_t duration_second, const name& payer);
 

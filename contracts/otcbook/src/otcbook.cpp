@@ -76,7 +76,7 @@ void otcbook::setconf(const name &conf_contract, const name& token_split_contrac
     _gstate.token_split_contract = token_split_contract;
     _gstate.token_split_plan_id = token_split_plan_id;
     _check_split_plan( token_split_contract, token_split_plan_id, _self );
-    _conf(true);
+    // _conf(true);
 }
 
 void otcbook::setadmin( const name& account, const bool& to_add) {
@@ -159,7 +159,7 @@ void otcbook::delmerchant( const name& sender, const name& merchant_acct ) {
 void otcbook::openorder(const name& owner, const name& order_side, const set<name> &pay_methods, const asset& va_quantity, const asset& va_price,
     const asset& va_min_take_quantity,  const asset& va_max_take_quantity, const string &memo
 ){
-    check(_conf().status == (uint8_t)status_type::RUNNING, "service is in maintenance");
+    check(_conf().status == conf_status::RUNNING, "service is in maintenance");
     require_auth( owner );
     check( ORDER_SIDES.count(order_side) != 0, "Invalid order side" );
     check( va_quantity.is_valid(), "Invalid quantity");
@@ -321,7 +321,7 @@ void otcbook::_opendeal( const name& taker, const name& order_side, const uint64
     require_auth( taker );
 
     auto conf = _conf();
-    check( conf.status == (uint8_t)status_type::RUNNING, "service is in maintenance" );
+    check( conf.status == conf_status::RUNNING, "service is in maintenance" );
     check( ORDER_SIDES.count(order_side) != 0, "Invalid order side" );
 
     auto order_wrapper_ptr = (order_side == BUY_SIDE) ? buy_order_wrapper_t::get_from_db(_self, _self.value, order_id)
@@ -894,7 +894,7 @@ void otcbook::resetdeal(const name& account, const uint64_t& deal_id){
 
 void otcbook::withdraw(const name& owner, asset quantity){
     auto conf = _conf();
-    check( conf.status == (uint8_t)status_type::RUNNING, "service is in maintenance" );
+    check( conf.status == conf_status::RUNNING, "service is in maintenance" );
     check( has_auth(owner) || has_auth(_self), "neither owner nor self" );
     check( quantity.amount > 0, "quanity must be positive" );
     check( quantity.symbol.is_valid(), "Invalid quantity symbol name" );
@@ -982,15 +982,14 @@ void otcbook::setblacklist(const name& account, uint64_t duration_second) {
    _set_blacklist(account, duration_second, _conf().managers.at(otc::manager_type::admin));
 }
 
-const country_conf_t& otcbook::_conf(bool refresh/* = false*/) {
+const fiat_conf_t& otcbook::_conf(bool refresh/* = false*/) {
     
     CHECK(_gstate.conf_contract.value != 0, "Invalid conf_table");
-    CHECK(_gstate1.country_name.value != 0, "Invalid conf_table1");
 
-    country_conf_t::idx_t conf_tbl(_gstate.conf_contract,_gstate.conf_contract.value);
-    auto itr = conf_tbl.find(_gstate1.country_name.value);
+    fiat_conf_t::idx_t conf_tbl(_gstate.conf_contract,_gstate.conf_contract.value);
+    auto itr = conf_tbl.find( _self.value );
     CHECK( itr != conf_tbl.end(), "conf table not existed in contract: " + _gstate.conf_contract.to_string());
-    return conf_tbl.get(_gstate1.country_name.value);
+    return conf_tbl.get( _self.value );
 }
 
 void otcbook::stakechanged(const name& account, const asset &quantity, const string& memo){

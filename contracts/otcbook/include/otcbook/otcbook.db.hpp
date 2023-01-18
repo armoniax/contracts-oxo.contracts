@@ -79,8 +79,8 @@ typedef eosio::singleton< "global"_n, global_t > global_singleton;
 struct [[eosio::table("global1"), eosio::contract("otcbook")]] global1_t
 {
     
-    name                country_name = "cn"_n;
-    EOSLIB_SERIALIZE(global1_t, (country_name))
+    symbol_code                fiat_code;
+    EOSLIB_SERIALIZE(global1_t, (fiat_code))
 };
 
 typedef eosio::singleton<"global1"_n, global1_t> global_singleton1;
