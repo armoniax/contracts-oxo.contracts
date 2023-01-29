@@ -214,10 +214,14 @@ void otcconf::settimeout(const uint64_t& accepted_timeout, const uint64_t& payed
 
 void otcconf::setconf( const fiat_conf_t& conf ) {
     require_auth( _self );
-    auto fiat_conf = fiat_conf_t( conf.contract_name );
-    // conf.status = uint8_t(status_type::INITIALIZED);
+    CHECKC( is_account(conf.contract_name), err::PARAM_ERROR,"contract name invalid: " + conf.contract_name.to_string());
+    CHECKC( conf.status == conf_status::UN_INITIALIZE
+            || conf.status == conf_status::INITIALIZED
+            || conf.status == conf_status::RUNNING
+            || conf.status == conf_status::MAINTAINING , err::PARAM_ERROR, "status type error: " + conf.status.to_string())
+    CHECKC( conf.fee_pct >= 0, err::NOT_POSITIVE, "unsupport negtive fee");
 
-    // CHECKC( !_db.get(fiat_conf),err::RECORD_EXISTING, "conf already existing : " + conf.contract_name.to_string())
+    auto fiat_conf = fiat_conf_t( conf.contract_name );
     if ( !_db.get(fiat_conf) ){
         _db.set(_self.value,conf,false);
     } else {

@@ -76,14 +76,7 @@ struct [[eosio::table("global"), eosio::contract("otcbook")]] global_t {
     EOSLIB_SERIALIZE( global_t, (conf_contract)(sell_order_id)(buy_order_id)(deal_id)(arbiter_count)(token_split_contract)(token_split_plan_id))
 };
 typedef eosio::singleton< "global"_n, global_t > global_singleton;
-struct [[eosio::table("global1"), eosio::contract("otcbook")]] global1_t
-{
-    
-    symbol_code                fiat_code;
-    EOSLIB_SERIALIZE(global1_t, (fiat_code))
-};
 
-typedef eosio::singleton<"global1"_n, global1_t> global_singleton1;
 enum class account_type_t: uint8_t {
     NONE           = 0,
     ADMIN          = 1,

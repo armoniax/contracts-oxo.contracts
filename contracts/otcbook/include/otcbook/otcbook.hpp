@@ -51,8 +51,6 @@ private:
     dbc                 _dbc;
     global_singleton    _global;
     global_t            _gstate;
-    global_singleton1    _global1;
-    global1_t            _gstate1;
     std::unique_ptr<conf_table_t> _conf_tbl_ptr;
     std::unique_ptr<conf_t> _conf_ptr;
 
@@ -60,15 +58,13 @@ public:
     using contract::contract;
     otcbook(eosio::name receiver, eosio::name code, datastream<const char*> ds):
         _dbc(_self), contract(receiver, code, ds),
-        _global(_self, _self.value), _global1(_self, _self.value) 
+        _global(_self, _self.value)
     {
         _gstate = _global.exists() ? _global.get() : global_t{};
-        _gstate1 = _global1.exists() ? _global1.get() : global1_t{};
     }
 
     ~otcbook() {
         _global.set( _gstate, get_self() ); 
-        _global1.set( _gstate1, get_self() ); 
     }
 
     /**

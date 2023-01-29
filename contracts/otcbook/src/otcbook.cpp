@@ -1080,7 +1080,7 @@ void otcbook::_merchant_apply(name from, asset quantity, vector<string_view> mem
     merchant.merchant_name = merchant_name;
     merchant.merchant_detail = merchant_detail;
     merchant.email = email;
-    merchant.status = (uint8_t)merchant_status_t::REGISTERED;
+    merchant.status = (uint8_t)merchant_status_t::BASIC;
     _add_balance(merchant, quantity, "merchant deposit");
     _dbc.set(merchant, get_self());
 }
