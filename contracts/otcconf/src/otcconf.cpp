@@ -98,7 +98,17 @@ void otcconf::init(const name& admin) {
 void otcconf::setmanager(const name& type, const name& account,const name& contract_name){
     auto fiat_conf = fiat_conf_t( contract_name );
     CHECKC( _db.get(fiat_conf),err::RECORD_EXISTING, "conf not existing : " + contract_name.to_string())
-    CHECKC( has_auth(_self) || fiat_conf.managers.at(manager_type::admin), err::NO_AUTH, "Missing required authority of admin or managers" )
+    CHECKC( has_auth(_self) || has_auth(fiat_conf.managers.at(manager_type::admin)), err::NO_AUTH, "Missing required authority of admin or managers" )
+    CHECKC( type == manager_type::admin
+            || type == manager_type::feetaker
+            || type == manager_type::arbiter
+            || type == manager_type::otcbook
+            || type == manager_type::settlement
+            || type == manager_type::swaper
+            || type == manager_type::cashbank
+            || type == manager_type::scorebank
+            || type == manager_type::aplinkfarm , err::PARAM_ERROR, "manager type error: " + type.to_string())
+
     // require_auth(_gstate.managers.at(manager_type::admin));
     // CHECKC(is_account(account), err::ACCOUNT_INVALID, "invalid account: " + account.to_string());
     fiat_conf.managers[type] = account;
@@ -110,7 +120,7 @@ void otcconf::addcoin(const bool& is_buy, const symbol& coin, const symbol& stak
 
     auto fiat_conf = fiat_conf_t( contract_name );
     CHECKC( _db.get(fiat_conf),err::RECORD_EXISTING, "conf not existing : " + contract_name.to_string())
-    CHECKC( has_auth(_self) || fiat_conf.managers.at(manager_type::admin), err::NO_AUTH, "Missing required authority of admin or managers" )
+    CHECKC( has_auth(_self) || has_auth(fiat_conf.managers.at(manager_type::admin)), err::NO_AUTH, "Missing required authority of admin or managers" )
 
     // require_auth(_gstate.managers.at(manager_type::admin));
     CHECKC( fiat_conf.stake_assets_contract.count(stake_coin), err::SYMBOL_MISMATCH, "stake coin not supported" )
@@ -129,7 +139,7 @@ void otcconf::addcoin(const bool& is_buy, const symbol& coin, const symbol& stak
 void otcconf::deletecoin(const bool& is_buy, const symbol& coin,const name& contract_name){
     auto fiat_conf = fiat_conf_t( contract_name );
     CHECKC( _db.get(fiat_conf),err::RECORD_EXISTING, "conf not existing : " + contract_name.to_string())
-    CHECKC( has_auth(_self) || fiat_conf.managers.at(manager_type::admin), err::NO_AUTH, "Missing required authority of admin or managers" )
+    CHECKC( has_auth(_self) || has_auth(fiat_conf.managers.at(manager_type::admin)), err::NO_AUTH, "Missing required authority of admin or managers" )
 
     if(is_buy){
         CHECKC( fiat_conf.buy_coins_conf.count(coin), err::RECORD_NOT_FOUND, "coin not in buy coin list" )
@@ -145,7 +155,7 @@ void otcconf::deletecoin(const bool& is_buy, const symbol& coin,const name& cont
 void otcconf::setfeepct(const uint64_t& feepct,const name& contract_name){
     auto fiat_conf = fiat_conf_t( contract_name );
     CHECKC( _db.get(fiat_conf),err::RECORD_EXISTING, "conf not existing : " + contract_name.to_string())
-    CHECKC( has_auth(_self) || fiat_conf.managers.at(manager_type::admin), err::NO_AUTH, "Missing required authority of admin or managers" )
+    CHECKC( has_auth(_self) || has_auth(fiat_conf.managers.at(manager_type::admin)), err::NO_AUTH, "Missing required authority of admin or managers" )
 
     // require_auth(_gstate.managers.at(manager_type::admin));
     CHECKC(feepct >= 0, err::NOT_POSITIVE, "unsupport negtive fee");
@@ -156,7 +166,7 @@ void otcconf::setfeepct(const uint64_t& feepct,const name& contract_name){
 void otcconf::setsettlelv(const vector<settle_level_config>& configs,const name& contract_name){
     auto fiat_conf = fiat_conf_t( contract_name );
     CHECKC( _db.get(fiat_conf),err::RECORD_EXISTING, "conf not existing : " + contract_name.to_string())
-    CHECKC( has_auth(_self) || fiat_conf.managers.at(manager_type::admin), err::NO_AUTH, "Missing required authority of admin or managers" )
+    CHECKC( has_auth(_self) || has_auth(fiat_conf.managers.at(manager_type::admin)), err::NO_AUTH, "Missing required authority of admin or managers" )
 
     fiat_conf.settle_levels = configs;
     _db.set(fiat_conf);
@@ -166,7 +176,7 @@ void otcconf::setswapstep(const vector<swap_step_config> rates,const name& contr
 {
     auto fiat_conf = fiat_conf_t( contract_name );
     CHECKC( _db.get(fiat_conf),err::RECORD_EXISTING, "conf not existing : " + contract_name.to_string())
-    CHECKC( has_auth(_self) || fiat_conf.managers.at(manager_type::admin), err::NO_AUTH, "Missing required authority of admin or managers" )
+    CHECKC( has_auth(_self) || has_auth(fiat_conf.managers.at(manager_type::admin)), err::NO_AUTH, "Missing required authority of admin or managers" )
 
     fiat_conf.swap_steps = rates;
     _db.set(fiat_conf);
@@ -175,7 +185,7 @@ void otcconf::setswapstep(const vector<swap_step_config> rates,const name& contr
 void otcconf::setfarm(const name& farmname, const uint64_t& farm_lease_id, const symbol_code& symcode, const uint32_t& farm_scale,const name& contract_name){
     auto fiat_conf = fiat_conf_t( contract_name );
     CHECKC( _db.get(fiat_conf),err::RECORD_EXISTING, "conf not existing : " + contract_name.to_string())
-    CHECKC( has_auth(_self) || fiat_conf.managers.at(manager_type::admin), err::NO_AUTH, "Missing required authority of admin or managers" )
+    CHECKC( has_auth(_self) || has_auth(fiat_conf.managers.at(manager_type::admin)), err::NO_AUTH, "Missing required authority of admin or managers" )
 
     fiat_conf.managers[manager_type::aplinkfarm] = farmname;
     fiat_conf.farm_lease_id = farm_lease_id;
@@ -187,7 +197,7 @@ void otcconf::setfarm(const name& farmname, const uint64_t& farm_lease_id, const
 void otcconf::setappname(const name& otc_name,const name& contract_name) {
     auto fiat_conf = fiat_conf_t( contract_name );
     CHECKC( _db.get(fiat_conf),err::RECORD_EXISTING, "conf not existing : " + contract_name.to_string())
-    CHECKC( has_auth(_self) || fiat_conf.managers.at(manager_type::admin), err::NO_AUTH, "Missing required authority of admin or managers" )
+    CHECKC( has_auth(_self) || has_auth(fiat_conf.managers.at(manager_type::admin)), err::NO_AUTH, "Missing required authority of admin or managers" )
 
     fiat_conf.app_info.app_name = otc_name;
     _db.set(fiat_conf);
@@ -196,7 +206,12 @@ void otcconf::setappname(const name& otc_name,const name& contract_name) {
 void otcconf::setstatus(const name& status,const name& contract_name){
     auto fiat_conf = fiat_conf_t( contract_name );
     CHECKC( _db.get(fiat_conf),err::RECORD_EXISTING, "conf not existing : " + contract_name.to_string())
-    CHECKC( has_auth(_self) || fiat_conf.managers.at(manager_type::admin), err::NO_AUTH, "Missing required authority of admin or managers" )
+    CHECKC( has_auth(_self) || has_auth(fiat_conf.managers.at(manager_type::admin)), err::NO_AUTH, "Missing required authority of admin or managers" )
+
+    CHECKC( status == conf_status::UN_INITIALIZE
+            || status == conf_status::INITIALIZED
+            || status == conf_status::RUNNING
+            || status == conf_status::MAINTAINING , err::PARAM_ERROR, "status type error: " + status.to_string())
 
     fiat_conf.status = status;
     _db.set(fiat_conf);
@@ -205,7 +220,7 @@ void otcconf::setstatus(const name& status,const name& contract_name){
 void otcconf::settimeout(const uint64_t& accepted_timeout, const uint64_t& payed_timeout,const name& contract_name) {
     auto fiat_conf = fiat_conf_t( contract_name );
     CHECKC( _db.get(fiat_conf),err::RECORD_EXISTING, "conf not existing : " + contract_name.to_string())
-    CHECKC( has_auth(_self) || fiat_conf.managers.at(manager_type::admin), err::NO_AUTH, "Missing required authority of admin or managers" )
+    CHECKC( has_auth(_self) || has_auth(fiat_conf.managers.at(manager_type::admin)), err::NO_AUTH, "Missing required authority of admin or managers" )
 
     fiat_conf.accepted_timeout = accepted_timeout;
     fiat_conf.payed_timeout = payed_timeout;
