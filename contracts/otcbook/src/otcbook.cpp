@@ -1071,6 +1071,7 @@ void otcbook::_merchant_apply(name from, asset quantity, vector<string_view> mem
     string email = string(memo_params[3]);
 
     check(merchant_name.size() < 20, "merchant_name size too large: " + to_string(merchant_name.size()) );
+    check(merchant_detail.size() < 255, "merchant_detail size too large: " + to_string(merchant_detail.size()) );
     check(email.size() < 64, "email size too large: " + to_string(email.size()) );
 
     merchant_t merchant(from);
