@@ -76,7 +76,7 @@ void otcbook::setconf(const name &conf_contract, const name& token_split_contrac
     _gstate.token_split_contract = token_split_contract;
     _gstate.token_split_plan_id = token_split_plan_id;
     _check_split_plan( token_split_contract, token_split_plan_id, _self );
-    // _conf(true);
+    _conf(true);
 }
 
 void otcbook::setadmin( const name& account, const bool& to_add) {
@@ -406,7 +406,6 @@ void otcbook::closedeal(const name& account, const uint8_t& account_type, const 
     _closedeal(account, account_type, deal_id, close_msg, false);
 }
 
-
 deal_t otcbook::_closedeal(const name& account, const uint8_t& account_type, const uint64_t& deal_id, const string& close_msg, const bool& by_transfer) {
     auto conf = _conf();
     deal_t::idx_t deals(_self, _self.value);
@@ -498,6 +497,7 @@ deal_t otcbook::_closedeal(const name& account, const uint8_t& account_type, con
     if (deal_amount.symbol == STAKE_USDT) {
         if (is_account(settle_arc)) {
             SETTLE_DEAL(settle_arc,
+                        _self,
                         deal_id, 
                         deal_itr->order_maker,
                         deal_itr->order_taker, 
@@ -511,7 +511,6 @@ deal_t otcbook::_closedeal(const name& account, const uint8_t& account_type, con
 
     return *deal_itr;
 }
-
 void otcbook::canceldeal(const name& account, const uint8_t& account_type, const uint64_t& deal_id, bool is_taker_black) {
     require_auth( account );
 
@@ -985,7 +984,7 @@ void otcbook::setblacklist(const name& account, uint64_t duration_second) {
 const fiat_conf_t& otcbook::_conf(bool refresh/* = false*/) {
     
     CHECK(_gstate.conf_contract.value != 0, "Invalid conf_table");
-
+    
     fiat_conf_t::idx_t conf_tbl(_gstate.conf_contract,_gstate.conf_contract.value);
     auto itr = conf_tbl.find( _self.value );
     CHECK( itr != conf_tbl.end(), "conf table not existed in contract: " + _gstate.conf_contract.to_string());
@@ -1158,7 +1157,12 @@ void otcbook::_rand_arbiter( const uint64_t deal_id, name& arbiter ) {
     arbiter_t::idx_t arbiter_idx( get_self(), get_self().value);
     auto itr = arbiter_idx.begin();
     if (rand > 0) {
-        advance( itr, rand );
+        uint64_t curr_num = 0;
+        for( ; itr != arbiter_idx.end(); itr++){
+            curr_num ++;
+            if ( rand <= curr_num)
+                break;
+        }
     }
     
     arbiter = itr->account;
