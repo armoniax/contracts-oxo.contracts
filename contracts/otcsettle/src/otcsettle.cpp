@@ -61,7 +61,7 @@ void settle::deal(const name& fait_contract, const uint64_t& deal_id,
     CHECKC(is_account(user), err::ACCOUNT_INVALID, "invalid account: " + user.to_string());
     CHECKC(quantity.amount > 0, err::PARAM_ERROR, "quantity must be positive");
     CHECKC(fee.amount >= 0, err::PARAM_ERROR, "quantity must be positive");
-    CHECKC(conf.settle_levels.size()>0, err::UN_INITIALIZE, "level config hasn't set: ");
+    CHECKC(conf.settle_levels.size()>0, err::DATA_ERROR, "level config hasn't set: ");
     CHECKC(end_at > start_at, err::PARAM_ERROR, "end time should later than start time");
     if(quantity.symbol != CASH_SYMBOL || fee.symbol != CASH_SYMBOL) return;
 

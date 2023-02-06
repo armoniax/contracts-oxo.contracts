@@ -292,7 +292,7 @@ public:
      * @note require admin auth
      */
     [[eosio::action]]
-    void setblacklist(const name& account, uint64_t duration_second);
+    void setblacklist(const name& from, const name& account, uint64_t duration_second);
 
     [[eosio::action]]
     void addarbiter(const name& sender, const name& account, const string& email);
