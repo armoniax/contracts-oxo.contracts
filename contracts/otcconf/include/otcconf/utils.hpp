@@ -30,27 +30,33 @@ using namespace std;
 #define CHECKC(exp, code, msg) \
    { if (!(exp)) eosio::check(false, string("$$$") + to_string((int)code) + string("$$$ ") + msg); }
 
-enum class err: uint8_t {
+enum class err: uint32_t {
    NONE                 = 0,
-   RECORD_NOT_FOUND     = 1,
-   RECORD_EXISTING      = 2,
-   SYMBOL_MISMATCH      = 4,
-   PARAM_ERROR          = 5,
-   PAUSED               = 6,
-   NO_AUTH              = 7,
-   NOT_POSITIVE         = 8,
-   NOT_STARTED          = 9,
-   OVERSIZED            = 10,
-   TIME_EXPIRED         = 11,
-   NOTIFY_UNRELATED     = 12,
-   ACTION_REDUNDANT     = 13,
-   ACCOUNT_INVALID      = 14,
-   FEE_INSUFFICIENT     = 15,
-   UN_INITIALIZE        = 16,
-   STATUS_ERROR         = 17,
-   RATE_OVERLOAD        = 18,
-   DATA_ERROR           = 29,
-   MISC                 = 255
+
+   NO_AUTH              = 10001,
+   ACCOUNT_INVALID      = 10002,
+   OVERSIZED            = 10003,
+   NOT_POSITIVE         = 10004,
+
+   RECORD_FOUND         = 10008,
+   RECORD_NOT_FOUND     = 10009,
+
+   PARAM_ERROR          = 10101,
+   MEMO_FORMAT_ERROR    = 10102,
+
+   SYMBOL_MISMATCH      = 10201,
+   SYMBOL_NOT_SUPPORTED = 10202,
+   FEE_INSUFFICIENT     = 10203,
+   RATE_EXCEEDED        = 10204,
+   QUANTITY_INVALID     = 10205,
+
+   NOT_STARTED          = 10300,
+   PAUSED               = 10301,
+   TIME_EXPIRED         = 10302,
+   TIME_NOT_EXPIRED     = 10303,
+   STATE_MISMATCH       = 10304,
+
+   SYSTEM_ERROR         = 20000
 };
 
 

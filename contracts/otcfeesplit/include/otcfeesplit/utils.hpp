@@ -33,7 +33,7 @@ using namespace std;
 enum class err: uint8_t {
    NONE                 = 0,
    RECORD_NOT_FOUND     = 1,
-   RECORD_EXISTING      = 2,
+   RECORD_FOUND      = 2,
    SYMBOL_MISMATCH      = 4,
    PARAM_ERROR          = 5,
    PAUSED               = 6,

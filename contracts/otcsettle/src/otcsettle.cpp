@@ -57,13 +57,13 @@ void settle::deal(const name& fait_contract, const uint64_t& deal_id,
     fiat_conf_t conf = _conf(fait_contract);
     require_auth(conf.managers.at(otc::manager_type::otcbook));
     
-    CHECKC(is_account(merchant), err::ACCOUNT_INVALID, "invalid account: " + merchant.to_string());
-    CHECKC(is_account(user), err::ACCOUNT_INVALID, "invalid account: " + user.to_string());
-    CHECKC(quantity.amount > 0, err::PARAM_ERROR, "quantity must be positive");
-    CHECKC(fee.amount >= 0, err::PARAM_ERROR, "quantity must be positive");
-    CHECKC(conf.settle_levels.size()>0, err::DATA_ERROR, "level config hasn't set: ");
-    CHECKC(end_at > start_at, err::PARAM_ERROR, "end time should later than start time");
-    if(quantity.symbol != CASH_SYMBOL || fee.symbol != CASH_SYMBOL) return;
+    CHECKC( is_account(merchant), err::ACCOUNT_INVALID, "invalid account: " + merchant.to_string() );
+    CHECKC( is_account(user), err::ACCOUNT_INVALID, "invalid account: " + user.to_string() );
+    CHECKC( quantity.amount > 0, err::QUANTITY_INVALID, "quantity must be positive" );
+    CHECKC( fee.amount >= 0, err::QUANTITY_INVALID, "quantity must be positive" );
+    CHECKC( conf.settle_levels.size() > 0, err::SYSTEM_ERROR, "level config hasn't set: " );
+    CHECKC( end_at > start_at, err::PARAM_ERROR, "end time should later than start time" );
+    if( quantity.symbol != CASH_SYMBOL || fee.symbol != CASH_SYMBOL ) return;
 
     auto user_settle_data = settle_t(user);
     auto merchant_settle_data = settle_t(merchant);
