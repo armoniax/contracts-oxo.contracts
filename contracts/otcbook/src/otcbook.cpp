@@ -4,7 +4,6 @@
 #include <otcbook/otcbook.hpp>
 #include <otcconf/utils.hpp>
 #include <otcsettle.hpp>
-#include <otcswap.hpp>
 #include "aplink.farm/aplink.farm.hpp"
 
 static constexpr eosio::name active_permission{"active"_n};
