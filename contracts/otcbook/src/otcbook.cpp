@@ -327,9 +327,9 @@ void otcbook::_opendeal( const name& taker, const name& order_side, const uint64
                                                       : sell_order_wrapper_t::get_from_db(_self, _self.value, order_id);
     CHECKC( order_wrapper_ptr != nullptr,err::RECORD_NOT_FOUND, "order not found");
     const auto &order = order_wrapper_ptr->get_order();
-    CHECKC( order.owner != taker,err::DATA_ERROR, "taker cannot be equal to maker" );
-    CHECKC( deal_quantity.symbol == order.va_quantity.symbol,err::DATA_ERROR, "Token Symbol mismatch" );
-    CHECKC( order.status == (uint8_t)order_status_t::RUNNING,err::DATA_ERROR, "order not running" );
+    CHECKC( order.owner != taker,err::NO_AUTH, "taker cannot be equal to maker" );
+    CHECKC( deal_quantity.symbol == order.va_quantity.symbol,err::SYMBOL_MISMATCH, "Token Symbol mismatch" );
+    CHECKC( order.status == (uint8_t)order_status_t::RUNNING,err::STATUS_ERROR, "order not running" );
     CHECKC( order.va_quantity >= order.va_frozen_quantity + order.va_fulfilled_quantity + deal_quantity,err::DATA_ERROR,
         "Order's quantity insufficient" );
     CHECKC( deal_quantity >= order.va_min_take_quantity,err::DATA_ERROR, "Order's min accept quantity not met!" );
@@ -899,7 +899,7 @@ void otcbook::withdraw(const name& owner, asset quantity){
     CHECKC( has_auth(owner) || has_auth(_self),err::NO_AUTH, "neither owner nor self" );
     CHECKC( quantity.amount > 0,err::PARAM_ERROR, "quanity must be positive" );
     CHECKC( quantity.symbol.is_valid(),err::SYMBOL_MISMATCH, "Invalid quantity symbol name" );
-    CHECKC( _conf().stake_assets_contract.count(quantity.symbol),err::DATA_ERROR, "Token Symbol not allowed" );
+    CHECKC( _conf().stake_assets_contract.count(quantity.symbol),err::SYMBOL_MISMATCH, "Token Symbol not allowed" );
 
     merchant_t merchant(owner);
     CHECKC( _dbc.get(merchant),err::RECORD_NOT_FOUND, "merchant not found: " + owner.to_string() );
@@ -930,7 +930,7 @@ void otcbook::withdraw(const name& owner, asset quantity){
 
 void otcbook::ontransfer(name from, name to, asset quantity, string memo){
     if(_self == from || to != _self) return;
-    CHECKC( _conf().stake_assets_contract.count(quantity.symbol),err::DATA_ERROR, "Token Symbol not allowed" );
+    CHECKC( _conf().stake_assets_contract.count(quantity.symbol),err::SYMBOL_MISMATCH, "Token Symbol not allowed" );
     CHECKC( _conf().stake_assets_contract.at(quantity.symbol) == get_first_receiver(),err::DATA_ERROR, "Token Symbol not allowed" );
   
     if(memo.empty()){
@@ -962,7 +962,7 @@ void otcbook::ontransfer(name from, name to, asset quantity, string memo){
 void otcbook::_deposit(name from, name to, asset quantity, string memo) {
     if(_self == from || to != _self) return;
 
-    CHECKC( _conf().stake_assets_contract.count(quantity.symbol),err::DATA_ERROR, "Token Symbol not allowed: " + quantity.to_string() );
+    CHECKC( _conf().stake_assets_contract.count(quantity.symbol),err::SYMBOL_MISMATCH, "Token Symbol not allowed: " + quantity.to_string() );
     CHECKC( _conf().stake_assets_contract.at(quantity.symbol) == get_first_receiver(),err::DATA_ERROR, "Token Contract not allowed: " 
                                                 + _conf().stake_assets_contract.at(quantity.symbol).to_string() );
     merchant_t merchant(from);
@@ -1191,9 +1191,15 @@ void otcbook::_update_arbiter_info( const name& account, const asset& quant, con
 }
 
 void otcbook::_require_admin(const name& account) {
-    require_auth( account );
+    // require_auth( account );
+    // CHECKC( has_auth(account) || has_auth(_conf().managers.at(manager_type::admin)), err::NO_AUTH, "Missing required authority of admin or managers" )
     // CHECKC( _conf().managers.at(otc::manager_type::admin) == account,err::NO_AUTH, "Only admin allowed" );
+    if ( !has_auth( _self )){
 
-    auto admin = admin_t( account );
-    CHECKC( _dbc.get( admin ), err::RECORD_NOT_FOUND, "not admin: " + account.to_string() )
+        require_auth( account );
+        auto admin = admin_t( account );
+        CHECKC( _dbc.get( admin ), err::RECORD_NOT_FOUND, "not admin: " + account.to_string() )
+
+    } 
+   
 }
