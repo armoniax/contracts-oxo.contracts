@@ -38,6 +38,7 @@ static constexpr symbol STAKE_USDT = SYMBOL("MUSDT",6);
 
 
 // crypto coins for trading
+static constexpr symbol USDT_ARC20 = SYMBOL("USDTARC", 6);
 static constexpr symbol USDT_ERC20 = SYMBOL("USDTERC", 6);
 static constexpr symbol USDT_TRC20 = SYMBOL("USDTTRC", 6);
 static constexpr symbol USDT_BEP20 = SYMBOL("USDTBEP", 6);

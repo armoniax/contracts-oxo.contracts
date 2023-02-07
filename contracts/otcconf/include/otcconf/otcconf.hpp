@@ -56,7 +56,11 @@ public:
      * only code maintainer can init
      */
     [[eosio::action]] 
-    void init(const name& admin);
+    void init(const name& fiat_contract,
+                    const name& admin,
+                    const name& settle_contract, 
+                    const symbol& fiat_type,
+                    const set<name>& pay_type);
 
     /**
      * set running status by admin
