@@ -930,8 +930,8 @@ void otcbook::withdraw(const name& owner, asset quantity){
 
 void otcbook::ontransfer(name from, name to, asset quantity, string memo){
     if(_self == from || to != _self) return;
-    CHECKC( _conf().stake_assets_contract.count(quantity.symbol),err::SYMBOL_NOT_SUPPORTED, "Token Symbol not allowed" );
-    CHECKC( _conf().stake_assets_contract.at(quantity.symbol) == get_first_receiver(),err::SYMBOL_NOT_SUPPORTED, "Token Symbol not allowed" );
+    CHECKC( _conf().stake_assets_contract.count(quantity.symbol),err::SYMBOL_UNSUPPORTED, "Token Symbol not allowed" );
+    CHECKC( _conf().stake_assets_contract.at(quantity.symbol) == get_first_receiver(),err::SYMBOL_UNSUPPORTED, "Token Symbol not allowed" );
   
     if(memo.empty()){
         _deposit(from, to, quantity, memo);
@@ -962,8 +962,8 @@ void otcbook::ontransfer(name from, name to, asset quantity, string memo){
 void otcbook::_deposit(name from, name to, asset quantity, string memo) {
     if(_self == from || to != _self) return;
 
-    CHECKC( _conf().stake_assets_contract.count(quantity.symbol),err::SYMBOL_NOT_SUPPORTED, "Token Symbol not allowed: " + quantity.to_string() );
-    CHECKC( _conf().stake_assets_contract.at(quantity.symbol) == get_first_receiver(),err::SYMBOL_NOT_SUPPORTED, "Token Contract not allowed: " 
+    CHECKC( _conf().stake_assets_contract.count(quantity.symbol),err::SYMBOL_UNSUPPORTED, "Token Symbol not allowed: " + quantity.to_string() );
+    CHECKC( _conf().stake_assets_contract.at(quantity.symbol) == get_first_receiver(),err::SYMBOL_UNSUPPORTED, "Token Contract not allowed: " 
                                                 + _conf().stake_assets_contract.at(quantity.symbol).to_string() );
     merchant_t merchant(from);
     CHECKC(_dbc.get( merchant ),err::RECORD_NOT_FOUND,"merchant is not set, from:" + from.to_string()+ ",to:" + to.to_string());
