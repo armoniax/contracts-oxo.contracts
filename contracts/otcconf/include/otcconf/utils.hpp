@@ -32,20 +32,57 @@ using namespace std;
 
 enum class err: uint32_t {
    NONE                 = 0,
+   
+   /**
+    * @brief 系统
+    *        
+    */
+   ACCOUNT_INVALID      = 10001,  // 账号不存在或不符合格式
+   RECORD_NOT_FOUND     = 10002,
+   UNINITIALIZED        = 10003,
+   
 
-   NO_AUTH              = 10001,
-   ACCOUNT_INVALID      = 10002,
-   OVERSIZED            = 10003,
-   NOT_POSITIVE         = 10004,
+   /**
+    * @brief 用户
+    * 
+    */
+   ACCOUNT_NOT_FOUND                = 10008,
+   NAME_TOO_LARGE                   = 10009,
+   EMAIL_TOO_LARGE                  = 10010,
+   DETAL_TOO_LARGE                  = 10011,
+   MEMO_TOO_LARGE                   = 10012,
+   REJECT_REASON_TOO_LARGE          = 10013,
+   ACCOUNT_STATE_MISMATCH           = 10014,
+   
+   /**
+    * @brief 订单
+    * 
+    */
+   ORDRE_OWNER_NO_AUTH          = 10101,
+   ORDER_NOT_FOUND              = 10101,
+   PARAM_ERROR                  = 10101,
+   MEMO_FORMAT_ERROR             = 10102,
+   INVALID_ORDER_SIZE            = 10004,
+   INVALID_QUANTITY              = 10005,
+   INVALID_MIN_QUANTITY          = 10005,
+   INVALID_MAX_QUANTITY          = 10005,
+   INVALID_MIN_QUANTITY_AMOUNT          = 10005,
+   INVALID_MAX_QUANTITY_AMOUNT          = 10005,
+   INVALID_PRICE             = 10005,
+   PRICE_SYMBOL_NOT_ALLOW    = 10005,
+   PRICE_NOT_POSITIVE        = 10005,
+   QUANTITY_SYMBOL_NOT_ALLOW = 10005,
+   QUANTITY_SYMBOL_MISMATCH  = 10005,   
+   QUANTITY_NOT_POSITIVE     = 10005,
+   PAY_TYPE_NOT_ALLOW        = 10005,
+   ORDER_STATE_MISMATCH      = 10005,
+   ORDER_STETE_NOT_RUNNING         = 10006,
+   ORDER_STETE_NOT_PAUSED         = 10006,
+   ORDER_STETE_NOT_CLOSED         = 10006,
 
-   RECORD_FOUND         = 10008,
-   RECORD_NOT_FOUND     = 10009,
-
-   PARAM_ERROR          = 10101,
-   MEMO_FORMAT_ERROR    = 10102,
 
    SYMBOL_MISMATCH      = 10201,
-   SYMBOL_UNSUPPORTED = 10202,
+   SYMBOL_UNSUPPORTED   = 10202,
    FEE_INSUFFICIENT     = 10203,
    RATE_EXCEEDED        = 10204,
    QUANTITY_INVALID     = 10205,
