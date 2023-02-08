@@ -32,31 +32,75 @@ using namespace std;
 
 enum class err: uint32_t {
    NONE                 = 0,
+   
+   /**
+    * @brief 系统
+    *        
+    */
+   ACCOUNT_INVALID                      = 10001,    // 帐户无效
+   RECORD_EXISTING                      = 10002,    // 数据已存在
+   RECORD_NOT_FOUND                     = 10003,    // 数据不存在
+   UNINITIALIZED                        = 10004,    // 未初始化完成
+   CONF_NOT_FOUND                       = 10005,    // 配置不存在
+   SPLIT_NOT_FOUND                      = 10006,    // 分账计划不存在
+   NOT_POSITIVE                         = 10007,    // 非正数
+   PARAM_ERROR                          = 10008,    // 参数错误
+   SYMBOL_MISMATCH                      = 10009,    // 符号未匹配
 
-   NO_AUTH              = 10001,
-   ACCOUNT_INVALID      = 10002,
-   OVERSIZED            = 10003,
-   NOT_POSITIVE         = 10004,
+   /**
+    * @brief 用户
+    * 
+    */
+   NO_AUTH                              = 10101,    // 无权操作
+   BLACKLISTED                          = 10102,    // 黑名单
+   ACCOUNT_NOT_FOUND                    = 10103,    // 用户不存在
+   NAME_TOO_LARGE                       = 10104,    // 名称过长
+   EMAIL_TOO_LARGE                      = 10105,    // email 过长
+   DETAL_TOO_LARGE                      = 10106,    // detal 过长
+   MEMO_TOO_LARGE                       = 10107,    // memo 过长
+   REJECT_REASON_TOO_LARGE              = 10108,    // REJECT REASON原因过长
+   ACCOUNT_STATE_MISMATCH               = 10109,    // 用户状态未匹配
+   ACCCOUNT_TYPE_MISMATCH               = 10110,    // 用户类型未匹配
+   
+   /**
+    * @brief 订单
+    * 
+    */
+   ORDER_NOT_FOUND                      = 10201,    // 订单不存在
+   ORDER_EXISTING                       = 10202,    // 订单已存在
+   INVALID_ORDER_SIZE                   = 10203,    // 订单方无效
+   INVALID_QUANTITY                     = 10204,    // 数量无效
+   INVALID_MIN_QUANTITY_SYMBOL          = 10205,    // 最小数量符号无效
+   INVALID_MAX_QUANTITY_SYMBOL          = 10206,    // 最大数量符号无效
+   INVALID_MIN_QUANTITY                 = 10207,    // 最小数量无效
+   INVALID_MAX_QUANTITY                 = 10208,    // 最大数量无效
+   INVALID_PRICE                        = 10209,    // 价格无效
+   PRICE_SYMBOL_NOT_ALLOW               = 10211,    // 价格符号不支持
+   PRICE_NOT_POSITIVE                   = 10212,    // 价格非正数
+   QUANTITY_MISMATCH                    = 10213,    // 数量不匹配
+   QUANTITY_SYMBOL_NOT_ALLOW            = 10214,    // 符号不支持
+   QUANTITY_SYMBOL_MISMATCH             = 10215,    // 符号不匹配
+   QUANTITY_NOT_POSITIVE                = 10216,    // 数额需正数
+   QUANTITY_FROZEN_INSUFFICIENT         = 10217,    // 冻结额不足
+   QUANTITY_INSUFFICIENT                = 10218,    // 余额不足
 
-   RECORD_FOUND         = 10008,
-   RECORD_NOT_FOUND     = 10009,
+   PAY_TYPE_NOT_ALLOW                   = 10219,    // 支付类型不支持
+   ORDER_STATE_MISMATCH                 = 10220,    // 订单状态不匹配
+   ORDER_STATE_NOT_RUNNING              = 10221,    // 订单未进行
+   ORDER_STATE_NOT_PAUSED               = 10222,    // 订单未暂停
+   ORDER_STATE_NOT_CLOSED               = 10223,    // 订单未关闭
+   ORDER_STATE_CREATED                  = 10224,    // 订单已创建
+   ORDER_STATE_CLOSED                   = 10225,    // 订单已关闭
+   ORDER_STATE_CANCELLED                = 10226,    // 订单已取消
+   ORDER_STATE_MAKER_ACCEPTED           = 10227,    // 商户已接受
+   ORDER_STATE_NOT_ARBITING             = 10228,    // 订单非仲裁中
+   ORDER_STATE_UNARBITTED               = 10229,    // 已开始仲裁
+   
+   TIME_NOT_EXPIRED                     = 10230,    // 交易未到期  
+   TIME_NOT_REACHED                     = 10231,    // 未达操作时间
+   TIME_TOO_LARGE                       = 10232,    // 时间过长
 
-   PARAM_ERROR          = 10101,
-   MEMO_FORMAT_ERROR    = 10102,
-
-   SYMBOL_MISMATCH      = 10201,
-   SYMBOL_UNSUPPORTED = 10202,
-   FEE_INSUFFICIENT     = 10203,
-   RATE_EXCEEDED        = 10204,
-   QUANTITY_INVALID     = 10205,
-
-   NOT_STARTED          = 10300,
-   PAUSED               = 10301,
-   TIME_EXPIRED         = 10302,
-   TIME_NOT_EXPIRED     = 10303,
-   STATE_MISMATCH       = 10304,
-
-   SYSTEM_ERROR         = 20000
+   SYSTEM_ERROR                         = 20000     // 系统错误
 };
 
 

@@ -28,7 +28,7 @@ void otcconf::init(const name& fiat_contract,
     CHECKC( is_account(settle_contract), err::ACCOUNT_INVALID,"settle_contract name invalid: " + settle_contract.to_string());
 
     auto fiat_conf = fiat_conf_t( fiat_contract );
-    CHECKC( !_db.get(fiat_conf),err::RECORD_FOUND, "conf existing : " + fiat_contract.to_string())
+    CHECKC( !_db.get(fiat_conf),err::RECORD_EXISTING, "conf existing : " + fiat_contract.to_string())
 
     fiat_conf.app_info = {
         "meta.balance"_n,
@@ -153,7 +153,7 @@ void otcconf::addcoin(const bool& is_buy, const symbol& coin, const symbol& stak
 
 void otcconf::deletecoin(const bool& is_buy, const symbol& coin,const name& contract_name){
     auto fiat_conf = fiat_conf_t( contract_name );
-    CHECKC( _db.get(fiat_conf),err::RECORD_FOUND, "conf not existing : " + contract_name.to_string())
+    CHECKC( _db.get(fiat_conf),err::RECORD_EXISTING, "conf not existing : " + contract_name.to_string())
     CHECKC( has_auth(_self) || has_auth(fiat_conf.managers.at(manager_type::admin)), err::NO_AUTH, "Missing required authority of admin or managers" )
 
     if(is_buy){
@@ -173,7 +173,7 @@ void otcconf::setfeepct(const uint64_t& feepct,const name& contract_name){
     CHECKC( has_auth(_self) || has_auth(fiat_conf.managers.at(manager_type::admin)), err::NO_AUTH, "Missing required authority of admin or managers" )
 
     // require_auth(_gstate.managers.at(manager_type::admin));
-    CHECKC(feepct >= 0, err::NOT_POSITIVE, "unsupport negtive fee");
+    CHECKC(feepct >= 0 && feepct <= 10000, err::NOT_POSITIVE, "unsupport negtive fee");
     fiat_conf.fee_pct = feepct;
     _db.set(fiat_conf);
 }
