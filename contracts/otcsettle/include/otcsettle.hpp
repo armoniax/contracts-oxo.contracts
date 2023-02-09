@@ -65,8 +65,8 @@ public:
      * @param reciptian 
      * @param rewards reward_id array, support lessthan 20 rewards
      */
-    [[eosio::action]]
-    void claim(const name& fait_contract, const name& reciptian, vector<uint64_t> rewards);
+    // [[eosio::action]]
+    // void claim(const name& fait_contract, const name& reciptian, vector<uint64_t> rewards);
 
     using deal_action = eosio::action_wrapper<"deal"_n, &settle::deal>;
 };

@@ -59,8 +59,8 @@ void settle::deal(const name& fait_contract, const uint64_t& deal_id,
     
     CHECKC( is_account(merchant), err::ACCOUNT_INVALID, "invalid account: " + merchant.to_string() );
     CHECKC( is_account(user), err::ACCOUNT_INVALID, "invalid account: " + user.to_string() );
-    CHECKC( quantity.amount > 0, err::QUANTITY_INVALID, "quantity must be positive" );
-    CHECKC( fee.amount >= 0, err::QUANTITY_INVALID, "quantity must be positive" );
+    CHECKC( quantity.amount > 0, err::INVALID_QUANTITY, "quantity must be positive" );
+    CHECKC( fee.amount >= 0, err::INVALID_QUANTITY, "quantity must be positive" );
     CHECKC( conf.settle_levels.size() > 0, err::SYSTEM_ERROR, "level config hasn't set: " );
     CHECKC( end_at > start_at, err::PARAM_ERROR, "end time should later than start time" );
     if( quantity.symbol != CASH_SYMBOL || fee.symbol != CASH_SYMBOL ) return;
@@ -108,27 +108,27 @@ void settle::deal(const name& fait_contract, const uint64_t& deal_id,
     _db.set(creator_data, _self);
 }
 
-void settle::claim(const name& fait_contract, const name& reciptian, vector<uint64_t> rewards){
-    require_auth(reciptian);
+// void settle::claim(const name& fait_contract, const name& reciptian, vector<uint64_t> rewards){
+//     require_auth(reciptian);
 
-    auto cash_quantity = asset(0, CASH_SYMBOL);
-    auto score_quantity = asset(0, SCORE_SYMBOL);
-    auto current = time_point_sec(current_time_point());
+//     auto cash_quantity = asset(0, CASH_SYMBOL);
+//     auto score_quantity = asset(0, SCORE_SYMBOL);
+//     auto current = time_point_sec(current_time_point());
 
-    CHECKC( rewards.size() <= 20, err::OVERSIZED, "rewards too long, expect length 20" );
+//     CHECKC( rewards.size() <= 20, err::OVERSIZED, "rewards too long, expect length 20" );
 
-    for (int i = 0; i<rewards.size(); ++i)
-	{
-        auto reward_id = rewards[i];
-        auto reward = reward_t(reward_id);
-        CHECKC( _db.get( reward ), err::RECORD_NOT_FOUND, "reward not found: " + to_string(reward_id));
-        CHECKC( reward.reciptian == reciptian, err::ACCOUNT_INVALID, "account invalid");
+//     for (int i = 0; i<rewards.size(); ++i)
+// 	{
+//         auto reward_id = rewards[i];
+//         auto reward = reward_t(reward_id);
+//         CHECKC( _db.get( reward ), err::RECORD_NOT_FOUND, "reward not found: " + to_string(reward_id));
+//         CHECKC( reward.reciptian == reciptian, err::ACCOUNT_INVALID, "account invalid");
         
-        cash_quantity += reward.cash;
-        score_quantity += reward.score;
-        _db.del(reward);
-	}
+//         cash_quantity += reward.cash;
+//         score_quantity += reward.score;
+//         _db.del(reward);
+// 	}
 
-    if(cash_quantity.amount > 0) TRANSFER( _conf(fait_contract).managers.at(otc::manager_type::cashbank), reciptian, cash_quantity, "metabalance rewards");
-    if(score_quantity.amount > 0) TRANSFER( _conf(fait_contract).managers.at(otc::manager_type::scorebank), reciptian, score_quantity, "metabalance rewards");
-}
+//     if(cash_quantity.amount > 0) TRANSFER( _conf(fait_contract).managers.at(otc::manager_type::cashbank), reciptian, cash_quantity, "metabalance rewards");
+//     if(score_quantity.amount > 0) TRANSFER( _conf(fait_contract).managers.at(otc::manager_type::scorebank), reciptian, score_quantity, "metabalance rewards");
+// }
