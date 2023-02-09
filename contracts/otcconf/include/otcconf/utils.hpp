@@ -52,16 +52,16 @@ enum class err: uint32_t {
     * 
     */
    NO_AUTH                              = 10101,    // 无权操作
-   BLACKLISTED                          = 10102,    // 黑名单
+   BLACKLISTED                          = 10102,    // 黑名单用户，请3天后操作
    ACCOUNT_NOT_FOUND                    = 10103,    // 用户不存在
    NAME_TOO_LARGE                       = 10104,    // 名称过长
    EMAIL_TOO_LARGE                      = 10105,    // email 过长
    DETAL_TOO_LARGE                      = 10106,    // detal 过长
    MEMO_TOO_LARGE                       = 10107,    // memo 过长
    REJECT_REASON_TOO_LARGE              = 10108,    // REJECT REASON原因过长
-   ACCOUNT_STATE_MISMATCH               = 10109,    // 用户状态未匹配
+   ACCOUNT_STATE_MISMATCH               = 10109,    //  当前账户状态不可操作
    ACCCOUNT_TYPE_MISMATCH               = 10110,    // 用户类型未匹配
-   
+   ACCOUNT_EXISING                      = 10111,    // 用户已存在
    /**
     * @brief 订单
     * 
@@ -85,7 +85,7 @@ enum class err: uint32_t {
    QUANTITY_INSUFFICIENT                = 10218,    // 余额不足
 
    PAY_TYPE_NOT_ALLOW                   = 10219,    // 支付类型不支持
-   ORDER_STATE_MISMATCH                 = 10220,    // 订单状态不匹配
+   ORDER_STATE_MISMATCH                 = 10220,    // 当前订单状态不可操作，请刷新
    ORDER_STATE_NOT_RUNNING              = 10221,    // 订单未进行
    ORDER_STATE_NOT_PAUSED               = 10222,    // 订单未暂停
    ORDER_STATE_NOT_CLOSED               = 10223,    // 订单未关闭

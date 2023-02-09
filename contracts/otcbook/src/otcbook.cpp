@@ -1078,7 +1078,7 @@ void otcbook::_merchant_apply(name from, asset quantity, vector<string_view> mem
     CHECKC(email.size() < 64,err::EMAIL_TOO_LARGE, "email size too large: " + to_string(email.size()) );
 
     merchant_t merchant(from);
-    CHECKC(!_dbc.get( merchant ),err::ACCOUNT_NOT_FOUND,"merchant is existed");
+    CHECKC(!_dbc.get( merchant ),err::ACCOUNT_EXISING,"merchant is existed");
     
     merchant.merchant_name = merchant_name;
     merchant.merchant_detail = merchant_detail;
@@ -1131,7 +1131,7 @@ void otcbook::addarbiter(const name& sender, const name& account, const string& 
     CHECKC(is_account(account), err::ACCOUNT_INVALID,  "account not existed: " +  account.to_string());
 
     auto arbiter = arbiter_t(account);
-    // CHECKC( !_dbc.get(arbiter), err::RECORD_EXISTING, "arbiter already exists: " + account.to_string() );
+    CHECKC( !_dbc.get(arbiter), err::ACCOUNT_EXISING, "arbiter already exists: " + account.to_string() );
     arbiter.email = email;
     _dbc.set( arbiter, get_self());
 
