@@ -30,23 +30,77 @@ using namespace std;
 #define CHECKC(exp, code, msg) \
    { if (!(exp)) eosio::check(false, string("$$$") + to_string((int)code) + string("$$$ ") + msg); }
 
-enum class err: uint8_t {
+enum class err: uint32_t {
    NONE                 = 0,
-   RECORD_NOT_FOUND     = 1,
-   RECORD_EXISTING      = 2,
-   SYMBOL_MISMATCH      = 4,
-   PARAM_ERROR          = 5,
-   PAUSED               = 6,
-   NO_AUTH              = 7,
-   NOT_POSITIVE         = 8,
-   NOT_STARTED          = 9,
-   OVERSIZED            = 10,
-   TIME_EXPIRED         = 11,
-   NOTIFY_UNRELATED     = 12,
-   ACTION_REDUNDANT     = 13,
-   ACCOUNT_INVALID      = 14,
-   UN_INITIALIZE        = 16,
-   HAS_INITIALIZE       = 17
+   
+   /**
+    * @brief 系统
+    *        
+    */
+   ACCOUNT_INVALID                      = 10001,    // 帐户无效
+   RECORD_EXISTING                      = 10002,    // 数据已存在
+   RECORD_NOT_FOUND                     = 10003,    // 数据不存在
+   UNINITIALIZED                        = 10004,    // 未初始化完成
+   CONF_NOT_FOUND                       = 10005,    // 配置不存在
+   SPLIT_NOT_FOUND                      = 10006,    // 分账计划不存在
+   NOT_POSITIVE                         = 10007,    // 非正数
+   PARAM_ERROR                          = 10008,    // 参数错误
+   SYMBOL_MISMATCH                      = 10009,    // 符号未匹配
+
+   /**
+    * @brief 用户
+    * 
+    */
+   NO_AUTH                              = 10101,    // 无权操作
+   BLACKLISTED                          = 10102,    // 黑名单用户，请3天后操作
+   ACCOUNT_NOT_FOUND                    = 10103,    // 用户不存在
+   NAME_TOO_LARGE                       = 10104,    // 名称过长
+   EMAIL_TOO_LARGE                      = 10105,    // email 过长
+   DETAL_TOO_LARGE                      = 10106,    // detal 过长
+   MEMO_TOO_LARGE                       = 10107,    // memo 过长
+   REJECT_REASON_TOO_LARGE              = 10108,    // REJECT REASON原因过长
+   ACCOUNT_STATE_MISMATCH               = 10109,    //  当前账户状态不可操作
+   ACCCOUNT_TYPE_MISMATCH               = 10110,    // 用户类型未匹配
+   ACCOUNT_EXISING                      = 10111,    // 用户已存在
+   /**
+    * @brief 订单
+    * 
+    */
+   ORDER_NOT_FOUND                      = 10201,    // 订单不存在
+   ORDER_EXISTING                       = 10202,    // 订单已存在
+   INVALID_ORDER_SIZE                   = 10203,    // 订单方无效
+   INVALID_QUANTITY                     = 10204,    // 数量无效
+   INVALID_MIN_QUANTITY_SYMBOL          = 10205,    // 最小数量符号无效
+   INVALID_MAX_QUANTITY_SYMBOL          = 10206,    // 最大数量符号无效
+   INVALID_MIN_QUANTITY                 = 10207,    // 最小数量无效
+   INVALID_MAX_QUANTITY                 = 10208,    // 最大数量无效
+   INVALID_PRICE                        = 10209,    // 价格无效
+   PRICE_SYMBOL_NOT_ALLOW               = 10211,    // 价格符号不支持
+   PRICE_NOT_POSITIVE                   = 10212,    // 价格非正数
+   QUANTITY_MISMATCH                    = 10213,    // 数量不匹配
+   QUANTITY_SYMBOL_NOT_ALLOW            = 10214,    // 符号不支持
+   QUANTITY_SYMBOL_MISMATCH             = 10215,    // 符号不匹配
+   QUANTITY_NOT_POSITIVE                = 10216,    // 数额需正数
+   QUANTITY_FROZEN_INSUFFICIENT         = 10217,    // 冻结额不足
+   QUANTITY_INSUFFICIENT                = 10218,    // 余额不足
+
+   PAY_TYPE_NOT_ALLOW                   = 10219,    // 支付类型不支持
+   ORDER_STATE_MISMATCH                 = 10220,    // 当前订单状态不可操作，请刷新
+   ORDER_STATE_NOT_RUNNING              = 10221,    // 订单未进行
+   ORDER_STATE_NOT_PAUSED               = 10222,    // 订单未暂停
+   ORDER_STATE_NOT_CLOSED               = 10223,    // 订单未关闭
+   ORDER_STATE_CREATED                  = 10224,    // 订单已创建
+   ORDER_STATE_CLOSED                   = 10225,    // 订单已关闭
+   ORDER_STATE_CANCELLED                = 10226,    // 订单已取消
+   ORDER_STATE_MAKER_ACCEPTED           = 10227,    // 商户已接受
+   ORDER_STATE_NOT_ARBITING             = 10228,    // 订单非仲裁中
+   ORDER_STATE_UNARBITTED               = 10229,    // 已开始仲裁
+   
+   TIME_NOT_EXPIRED                     = 10230,    // 交易未到期  
+   TIME_NOT_REACHED                     = 10231,    // 未达操作时间
+   TIME_TOO_LARGE                       = 10232,    // 时间过长
+
+   SYSTEM_ERROR                         = 20000     // 系统错误
 };
 
 

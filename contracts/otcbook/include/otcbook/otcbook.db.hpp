@@ -16,6 +16,7 @@
 namespace metabalance {
 
 using namespace std;
+
 using namespace eosio;
 
 #define SYMBOL(sym_code, precision) symbol(symbol_code(sym_code), precision)
@@ -31,7 +32,7 @@ static constexpr symbol   APLINK_SYMBOL         = SYMBOL("APL", 4);
 static constexpr eosio::name MT_BANK{"amax.mtoken"_n};
 
 
-static constexpr uint64_t percent_boost     = 10000;
+static uint64_t percent_boost     = 10000;
 static constexpr uint64_t order_stake_pct   = 10000; // 100%
 static constexpr uint64_t max_memo_size     = 256;
 

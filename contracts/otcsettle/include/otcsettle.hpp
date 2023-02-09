@@ -9,11 +9,12 @@
 
 using namespace eosio;
 using namespace wasm::db;
+using namespace otc;
 using std::string;
 
-#define SETTLE_DEAL(bank, deal_id, merchant, user, quantity, fee, arbit_status, start_at, end_at) \
+#define SETTLE_DEAL(bank, fait_contract, deal_id, merchant, user, quantity, fee, arbit_status, start_at, end_at) \
     {	otcsettle::settle::deal_action act{ bank, { {_self, active_permission} } };\
-			act.send( deal_id, merchant, user, quantity, fee, arbit_status, start_at, end_at );}
+			act.send( fait_contract, deal_id, merchant, user, quantity, fee, arbit_status, start_at, end_at );}
 
 namespace otcsettle {
 class [[eosio::contract("otcsettle")]] settle : public contract { 
@@ -29,7 +30,7 @@ private:
     std::unique_ptr<conf_table_t> _conf_tbl_ptr;
     std::unique_ptr<conf_t> _conf_ptr;
 
-    const conf_t& _conf(bool refresh = false);
+    const fiat_conf_t _conf(const name& fait_contract ,bool refresh = false);
 
 public:
     using contract::contract;
@@ -46,10 +47,10 @@ public:
     void setconf(const name &conf_contract);
 
     [[eosio::action]]
-    void setlevel(const name& user, uint8_t level);
+    void setlevel(const name& fait_contract,const name& user, uint8_t level);
 
     [[eosio::action]]
-    void deal(const uint64_t& deal_id,
+    void deal(const name& fait_contract,const uint64_t& deal_id,
                 const name& merchant, 
                 const name& user, 
                 const asset& quantity, 
@@ -64,8 +65,8 @@ public:
      * @param reciptian 
      * @param rewards reward_id array, support lessthan 20 rewards
      */
-    [[eosio::action]]
-    void claim(const name& reciptian, vector<uint64_t> rewards);
+    // [[eosio::action]]
+    // void claim(const name& fait_contract, const name& reciptian, vector<uint64_t> rewards);
 
     using deal_action = eosio::action_wrapper<"deal"_n, &settle::deal>;
 };

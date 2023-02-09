@@ -58,18 +58,13 @@ public:
     using contract::contract;
     otcbook(eosio::name receiver, eosio::name code, datastream<const char*> ds):
         _dbc(_self), contract(receiver, code, ds),
-        _global(_self, _self.value)/*, _global2(_self, _self.value) */
+        _global(_self, _self.value)
     {
-        if (_global.exists()) {
-            _gstate = _global.get();
-        } else { // first init
-            _gstate = global_t{};
-        }
-        // _gstate2 = _global2.exists() ? _global2.get() : global2_t{};
+        _gstate = _global.exists() ? _global.get() : global_t{};
     }
 
     ~otcbook() {
-        _global.set( _gstate, get_self() );
+        _global.set( _gstate, get_self() ); 
     }
 
     /**
@@ -100,6 +95,12 @@ public:
         _dbc.set( deal );
 
     }
+
+    // ACTION setfiatcode( const name& contract_name){
+    //     require_auth( _self );
+    //     _gstate1.fiat_code = fiat_code;
+    // }
+
     /**
      * open order by merchant
      * @param owner merchant account name
@@ -254,7 +255,17 @@ public:
     [[eosio::on_notify("*::transfer")]]
     void ontransfer(name from, name to, asset quantity, string memo);
 
-
+    ACTION test(){
+        deal_t::idx_t deals(_self, _self.value);
+        auto itr = deals.begin();
+        for (; itr != deals.end();itr++){
+            if ( itr->status == 3 ){
+                deals.modify( itr, _self, [&]( auto& row ) {
+                    row.arbiter = "merchantx"_n;
+                });
+            }
+        }
+    }
     /**
      * withdraw
      * @param owner owner account, only support merchant to withdraw
@@ -281,7 +292,7 @@ public:
      * @note require admin auth
      */
     [[eosio::action]]
-    void setblacklist(const name& account, uint64_t duration_second);
+    void setblacklist(const name& from, const name& account, uint64_t duration_second);
 
     [[eosio::action]]
     void addarbiter(const name& sender, const name& account, const string& email);
@@ -321,7 +332,7 @@ private:
 
     asset _calc_deal_amount(const asset &quantity);
 
-    const conf_t& _conf(bool refresh = false);
+    const fiat_conf_t& _conf(bool refresh = false);
 
     void _set_blacklist(const name& account, uint64_t duration_second, const name& payer);
 

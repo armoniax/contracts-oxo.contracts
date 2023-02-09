@@ -38,6 +38,7 @@ static constexpr symbol STAKE_USDT = SYMBOL("MUSDT",6);
 
 
 // crypto coins for trading
+static constexpr symbol USDT_ARC20 = SYMBOL("USDTARC", 6);
 static constexpr symbol USDT_ERC20 = SYMBOL("USDTERC", 6);
 static constexpr symbol USDT_TRC20 = SYMBOL("USDTTRC", 6);
 static constexpr symbol USDT_BEP20 = SYMBOL("USDTBEP", 6);
@@ -102,6 +103,13 @@ namespace manager_type {
     static constexpr eosio::name scorebank          = "scorebank"_n;
     static constexpr eosio::name aplinkfarm         = "aplinkfarm"_n;
 };
+
+namespace conf_status {
+    static constexpr eosio::name UN_INITIALIZE      { "uninitialized"_n   };
+    static constexpr eosio::name INITIALIZED        { "initialized"_n  };
+    static constexpr eosio::name RUNNING            { "running"_n };
+    static constexpr eosio::name MAINTAINING        { "maintaining"_n };
+}
 
 enum class status_type: uint8_t {
    UN_INITIALIZE        = 0,
@@ -184,5 +192,53 @@ struct [[eosio::table("global"), eosio::contract("otcconf")]] global_t {
     // }  
 };
 typedef eosio::singleton< "global"_n, global_t > global_singleton;
+
+
+struct CONTRACT_TBL fiat_conf_t {
+
+    name                        contract_name;
+    name                        status = conf_status::UN_INITIALIZE;
+    AppInfo_t                   app_info;
+    map<name,name>              managers;
+
+    // for book config
+    set<name>                   pay_type;
+    symbol                      fiat_type;
+    uint64_t                    fee_pct;
+    map<symbol, name>           stake_assets_contract; //get the contract 
+    map<symbol, symbol>         coin_as_stake;  //get stake asset for a coin
+    symbol_set                  buy_coins_conf;  //crypto coins that OTC merchants can buy in orders
+    symbol_set                  sell_coins_conf; //crypto coins that OTC merchants can sell in orders
+    uint64_t                    accepted_timeout;
+    uint64_t                    payed_timeout;
+
+    // for settle config
+    vector<settle_level_config> settle_levels;
+    map <symbol_code, uint32_t> farm_scales;
+    uint64_t                    farm_lease_id = 0;       //aplink.farm lease ID
+
+    // for swap config
+    vector<swap_step_config>    swap_steps;
+
+    fiat_conf_t() {}
+    fiat_conf_t( const name& cname):contract_name(cname) { }
+    // fiat_conf_t( const symbol& sym ):fiat_type(sym) {}
+    // fiat_conf_t( const symbol_code& sym ):fiat_type(sym,4) {}
+
+    uint64_t primary_key()const { return contract_name.value ; }
+
+    EOSLIB_SERIALIZE( fiat_conf_t, (contract_name)(status)(app_info)(managers)
+                                (pay_type)(fiat_type)(fee_pct)
+                                (stake_assets_contract)(coin_as_stake)
+                                (buy_coins_conf)(sell_coins_conf)
+                                (accepted_timeout)(payed_timeout)
+                                (settle_levels)
+                                (farm_scales)(farm_lease_id)
+                                (swap_steps) )
+
+    typedef eosio::multi_index < "fiatconf"_n,  fiat_conf_t> idx_t;
+
+};
+
 
 } // OTC

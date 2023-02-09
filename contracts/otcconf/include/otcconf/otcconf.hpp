@@ -56,7 +56,11 @@ public:
      * only code maintainer can init
      */
     [[eosio::action]] 
-    void init(const name& admin);
+    void init(const name& fiat_contract,
+                    const name& admin,
+                    const name& settle_contract, 
+                    const symbol& fiat_type,
+                    const set<name>& pay_type);
 
     /**
      * set running status by admin
@@ -64,34 +68,37 @@ public:
      * @note require contract admin auth
      */
     [[eosio::action]]
-    void setstatus(const uint8_t& status);
+    void setstatus(const name& status,const name& contract_name);
 
     [[eosio::action]]
-    void addcoin(const bool& is_buy, const symbol& coin, const symbol& stake_coin);
+    void addcoin(const bool& is_buy, const symbol& coin, const symbol& stake_coin,const name& contract_name);
 
     [[eosio::action]]
-    void deletecoin(const bool& is_buy, const symbol& coin);
+    void deletecoin(const bool& is_buy, const symbol& coin,const name& contract_name);
 
     [[eosio::action]]
-    void setmanager(const name& type, const name& account);
+    void setmanager(const name& type, const name& account,const name& contract_name);
 
     [[eosio::action]]
-    void setfeepct(const uint64_t& feepct);
+    void setfeepct(const uint64_t& feepct,const name& contract_name);
 
     [[eosio::action]]
-    void setfarm(const name& farmname, const uint64_t& farm_lease_id, const symbol_code& symcode, const uint32_t& farm_scale);
+    void setfarm(const name& farmname, const uint64_t& farm_lease_id, const symbol_code& symcode, const uint32_t& farm_scale,const name& contract_name);
 
     [[eosio::action]]
-    void setappname(const name& otc_name);
+    void setappname(const name& otc_name,const name& contract_name);
 
     [[eosio::action]]
-    void setsettlelv(const vector<settle_level_config>& configs);
+    void setsettlelv(const vector<settle_level_config>& configs,const name& contract_name);
 
     [[eosio::action]]
-    void setswapstep(const vector<swap_step_config> rates);
+    void setswapstep(const vector<swap_step_config> rates,const name& contract_name);
 
     [[eosio::action]]
-    void settimeout(const uint64_t& accepted_timeout, const uint64_t& payed_timeout);
+    void settimeout(const uint64_t& accepted_timeout, const uint64_t& payed_timeout,const name& contract_name);
+
+    [[eosio::action]]
+    void setconf( const fiat_conf_t& conf );
 
 private:
 
