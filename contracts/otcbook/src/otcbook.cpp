@@ -1131,11 +1131,12 @@ void otcbook::addarbiter(const name& sender, const name& account, const string& 
     CHECKC(is_account(account), err::ACCOUNT_INVALID,  "account not existed: " +  account.to_string());
 
     auto arbiter = arbiter_t(account);
-    CHECKC( !_dbc.get(arbiter), err::ACCOUNT_EXISING, "arbiter already exists: " + account.to_string() );
-    arbiter.email = email;
+    if ( !_dbc.get(arbiter) ){   
+        _gstate.arbiter_count = _gstate.arbiter_count + 1;
+    }
+     arbiter.email = email;
+    // CHECKC( !_dbc.get(arbiter), err::ACCOUNT_EXISING, "arbiter already exists: " + account.to_string() );
     _dbc.set( arbiter, get_self());
-
-    _gstate.arbiter_count = _gstate.arbiter_count + 1;
 }
 
 void otcbook::delarbiter(const name& sender, const name& account) {
