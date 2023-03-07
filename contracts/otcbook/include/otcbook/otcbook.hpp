@@ -255,17 +255,17 @@ public:
     [[eosio::on_notify("*::transfer")]]
     void ontransfer(name from, name to, asset quantity, string memo);
 
-    ACTION test(){
-        deal_t::idx_t deals(_self, _self.value);
-        auto itr = deals.begin();
-        for (; itr != deals.end();itr++){
-            if ( itr->status == 3 ){
-                deals.modify( itr, _self, [&]( auto& row ) {
-                    row.arbiter = "merchantx"_n;
-                });
-            }
-        }
-    }
+    // ACTION test(){
+    //     deal_t::idx_t deals(_self, _self.value);
+    //     auto itr = deals.begin();
+    //     for (; itr != deals.end();itr++){
+    //         if ( itr->status == 3 ){
+    //             deals.modify( itr, _self, [&]( auto& row ) {
+    //                 row.arbiter = "merchantx"_n;
+    //             });
+    //         }
+    //     }
+    // }
     /**
      * withdraw
      * @param owner owner account, only support merchant to withdraw
